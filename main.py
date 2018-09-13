@@ -58,7 +58,7 @@ console_thread.start()
 async def fetch_roomid_periodic():
     while True:
         now = datetime.now()
-        print('当前分钟为', now.minute)
+        print('当前时间为', now.minute, now.second)
         if (now.minute == 15 or now.minute == 45) and now.second <= 35:
             print('到达设定时间，正在重新查看房间')
             list_realroomid = await utils.getRecommend()
@@ -67,7 +67,6 @@ async def fetch_roomid_periodic():
         
         await asyncio.sleep(30)
 tasks = [
-    rafflehandler.run(),
     fetch_roomid_periodic(),
     # bili_timer.run(),
 

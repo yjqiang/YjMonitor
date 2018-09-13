@@ -45,7 +45,6 @@ class bilibiliClient():
         if roomid == 0:
             self.roomid = 23058
             self.loop_func = self.printDanMu
-            print('0检测所以，事实上收拾收拾')
         else:
             self.roomid = roomid
             self.loop_func = self.DanMuraffle

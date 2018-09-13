@@ -31,7 +31,7 @@ async def enter_room(roomid):
             printer.warn(f'抽奖脚本检测到房间{roomid:^9}为异常房间')
             return False
         else:
-            print('进入房间')
+            # print('房间为真')
             # await bilibili.post_watching_history(roomid)
             return True
             

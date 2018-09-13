@@ -3,6 +3,7 @@ from statistics import Statistics
 import utils
 import asyncio
 import time
+import string
 
 
 def CurrentTime():
@@ -11,60 +12,22 @@ def CurrentTime():
 
 
 class Rafflehandler:
-    __slots__ = ('queue_raffle', 'list_raffle_id')
+    __slots__ = ('list_raffle_id')
     instance = None
 
     def __new__(cls, *args, **kw):
         if not cls.instance:
             cls.instance = super(Rafflehandler, cls).__new__(cls, *args, **kw)
-            cls.instance.queue_raffle = asyncio.Queue()
             cls.instance.list_raffle_id = []
         return cls.instance
-
-    async def run(self):
-        while True:
-            raffle = await self.queue_raffle.get()
-            await asyncio.sleep(0.5)
-            list_raffle0 = [self.queue_raffle.get_nowait() for i in range(self.queue_raffle.qsize())]
-            list_raffle0.append(raffle)
-            list_raffle = list(set(list_raffle0))
-
-            # print('过滤完毕')
-            # if len(list_raffle) != len(list_raffle0):
-            # print('过滤机制起作用')
-
-            tasklist = []
-            for i in list_raffle:
-                i = list(i)
-                i[0] = list(i[0])
-                for j in range(len(i[0])):
-                    if isinstance(i[0][j], tuple):
-                        # print('检测')
-                        # i[0] = list(i[0])
-                        i[0][j] = await i[0][j][1](*(i[0][j][0]))
-                # print(i)
-                task = asyncio.ensure_future(i[1](*i[0]))
-                tasklist.append(task)
-
-            # await asyncio.wait(tasklist, return_when=asyncio.ALL_COMPLETED)
 
     @staticmethod
     def Put2Queue(value, func):
         # print('welcome to appending')
-        Rafflehandler.instance.queue_raffle.put_nowait((value, func))
+        asyncio.ensure_future(func(*value))
+        # Rafflehandler.instance.queue_raffle.put_nowait((value, func))
         # print('appended')
         return
-
-    @staticmethod
-    async def Put2Queue_wait(value, func):
-        # print('welcome to appending')
-        await Rafflehandler.instance.queue_raffle.put((value, func))
-        # print('appended')
-        return
-
-    @staticmethod
-    def getlist():
-        print('目前TV任务队列状况', Rafflehandler.instance.queue_raffle.qsize())
 
     def add2raffle_id(self, raffle_id):
         self.list_raffle_id.append(raffle_id)
@@ -77,11 +40,36 @@ class Rafflehandler:
         return (raffle_id in self.list_raffle_id)
 
 
+def dec2base(int_x, base):
+    digs = string.digits + string.ascii_letters
+    if int_x < 0:
+        sign = -1
+    elif int_x == 0:
+        return digs[0]
+    else:
+        sign = 1
+
+    int_x *= sign
+    digits = []
+
+    while int_x:
+        digits.append(digs[int(int_x % base)])
+        int_x = int(int_x / base)
+
+    if sign < 0:
+        digits.append('-')
+
+    digits.reverse()
+
+    return ''.join(digits)
+
 async def handle_1_room_storm(target, roomid, stormid):
     result = await utils.enter_room(roomid)
     if result:
         if not Rafflehandler().check_duplicate(stormid):
             Rafflehandler().add2raffle_id(stormid)
+            stormid = dec2base(int(stormid), 62)
+            roomid = dec2base(int(roomid), 62)
             await utils.send_danmu_msg_web(f'{roomid}~{stormid}', target)
 
 
@@ -99,13 +87,13 @@ async def handle_1_room_guard(target, roomid):
             print(f'{roomid}没有guard或者guard已经领取')
             return
         list_available_raffleid = []
-        # guard这里领取后，list对应会消失，其实就没有status了，这里是为了统一
         for j in json_response1['data']:
             print('获取到编号', j['id'])
             id = j['id']
             if not Rafflehandler().check_duplicate(id):
                 Rafflehandler().add2raffle_id(id)
+                id = dec2base(int(id), 62)
                 list_available_raffleid.append(id)
-
+        roomid = dec2base(int(roomid), 62)
         for raffleid in list_available_raffleid:
             await utils.send_danmu_msg_web(f'{roomid}-{raffleid}', target)
