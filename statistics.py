@@ -1,12 +1,3 @@
-import datetime
-
-
-# 13:30  --->  13.5
-def decimal_time():
-    now = datetime.datetime.now()
-    return now.hour + now.minute / 60.0
-
-
 class Statistics:
     __slots__ = ('activity_id_list', 'TV_id_list', 'result', 'pushed_raffle', 'joined_raffle')
     instance = None
