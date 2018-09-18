@@ -12,6 +12,7 @@ def CurrentTime():
 async def send_danmu_msg_web(msg, roomId):
     while True:
         json_response = await bilibili.request_send_danmu_msg_web(msg, roomId)
+        print(json_response)
         if not json_response['code'] and not json_response['msg']:
             print(f'已发送弹幕{msg}到{roomId}')
             return
