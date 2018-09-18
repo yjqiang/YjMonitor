@@ -45,6 +45,9 @@ class bilibiliClient():
         if roomid == 0:
             self.roomid = 23058
             self.loop_func = self.printDanMu
+        elif roomid is None:
+            self.roomid = self.target
+            self.loop_func = self.checking_func
         else:
             self.roomid = roomid
             self.loop_func = self.DanMuraffle
@@ -135,6 +138,15 @@ class bilibiliClient():
             # print(dic)
             Printer().print_danmu(dic)
             return
+            
+    def checking_func(self, dic):
+        # print(dic)
+        cmd = dic['cmd']
+        if cmd == 'DANMU_MSG':
+            msg = dic['info'][1]
+            if msg == 'check':
+                printer.info([f'弹幕监控检测到{self.roomid:^9}的检测请求'], True)
+                rafflehandler.Rafflehandler.Put2Queue((self.target,), rafflehandler.handle_1_room_check)
 
     def DanMuraffle(self, dic):
         cmd = dic['cmd']

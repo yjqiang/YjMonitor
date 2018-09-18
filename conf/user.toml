@@ -39,3 +39,6 @@ keep-login = true
 
 # 默认监听房间号
 default_monitor_roomid = 23058
+START = 0
+END = 0
+

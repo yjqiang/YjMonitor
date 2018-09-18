@@ -1,5 +1,6 @@
 from bilibili import bilibili
 from statistics import Statistics
+from configloader import ConfigLoader
 import utils
 import asyncio
 import time
@@ -72,6 +73,10 @@ async def handle_1_room_storm(target, roomid, stormid):
             roomid = dec2base(int(roomid), 62)
             await utils.send_danmu_msg_web(f'{roomid}~{stormid}', target)
 
+async def handle_1_room_check(target):
+    START = ConfigLoader().dic_user['other_control']['START']
+    END = ConfigLoader().dic_user['other_control']['END']
+    await utils.send_danmu_msg_web(f'{START}={END}', target)
 
 async def handle_1_room_guard(target, roomid):
     result = await utils.enter_room(roomid)

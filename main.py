@@ -14,14 +14,6 @@ import sys
 import utils
 
 
-try:
-    START, END = int(sys.argv[1]), int(sys.argv[2])
-except IndexError:
-    print('没有设置范围参数， python main.py START END')
-    # 修改这里的start end！！！！！！！
-    START, END = 0, 500
-
-
 if sys.platform == 'win32':
     loop = asyncio.ProactorEventLoop()
     asyncio.set_event_loop(loop)
@@ -31,6 +23,8 @@ else:
 fileDir = os.path.dirname(os.path.realpath('__file__'))
 
 ConfigLoader(fileDir)
+START = ConfigLoader().dic_user['other_control']['START']
+END = ConfigLoader().dic_user['other_control']['END']
 
 # print('Hello world.')
 printer = Printer()
@@ -51,6 +45,8 @@ var_console = bili_console.Biliconsole(loop)
 list_raffle_connection = [connect.RaffleConnect(i - START + 1, list_realroomid[i]) for i in range(START, END)]
 list_raffle_connection_task = [i.run() for i in list_raffle_connection]
 
+yjchecking = connect.RaffleConnect(-1, None)
+
 console_thread = threading.Thread(target=var_console.cmdloop)
 
 console_thread.start()
@@ -68,6 +64,7 @@ async def fetch_roomid_periodic():
         await asyncio.sleep(30)
 tasks = [
     fetch_roomid_periodic(),
+    yjchecking.run()
     # bili_timer.run(),
 
 ]
