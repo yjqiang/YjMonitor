@@ -96,4 +96,4 @@ async def handle_1_room_guard(target, roomid):
                 list_available_raffleid.append(id)
         roomid = dec2base(int(roomid), 62)
         for raffleid in list_available_raffleid:
-            await utils.send_danmu_msg_web(f'{roomid}<{raffleid}', target)
+            await utils.send_danmu_msg_web(f'{roomid}+{raffleid}', target)
