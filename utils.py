@@ -12,7 +12,7 @@ def CurrentTime():
 async def send_danmu_msg_web(msg, roomId):
     while True:
         json_response = await bilibili.request_send_danmu_msg_web(msg, roomId)
-        print(json_response)
+        print(json_response, msg)
         if not json_response['code'] and not json_response['msg']:
             print(f'已发送弹幕{msg}到{roomId}')
             return
@@ -53,7 +53,7 @@ async def getRecommend():
                     roomidlist.append(room['roomid'])
                     # print(room['roomid'])
             except:
-                print(newurl)
+                print(url, x)
         print(len(roomidlist))
         unique_list = []
         for id in roomidlist:
