@@ -16,7 +16,7 @@ async def send_danmu_msg_web(msg, roomId):
         if not json_response['code'] and not json_response['msg']:
             print(f'已发送弹幕{msg}到{roomId}')
             return
-        await asyncio.sleep(1)
+        await asyncio.sleep(2)
     
     
 async def enter_room(roomid):
