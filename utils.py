@@ -10,13 +10,35 @@ def CurrentTime():
     return str(currenttime)
 
 async def send_danmu_msg_web(msg, roomId):
-    while True:
-        json_response = await bilibili.request_send_danmu_msg_web(msg, roomId)
-        print(json_response, msg)
-        if not json_response['code'] and not json_response['msg']:
-            print(f'已发送弹幕{msg}到{roomId}')
+    async def check_send(msg, roomId):
+        while True:
+            json_response = await bilibili.request_send_danmu_msg_web(msg, roomId)
+            if not json_response['code'] and not json_response['msg']:
+                print(f'已发送弹幕{msg}到{roomId}')
+                return True
+            elif not json_response['code'] and json_response['msg'] == '内容非法':
+                print('检测非法反馈, 正在进行下一步处理', msg)
+                return False
+            else:
+                print(json_response, msg)
+            await asyncio.sleep(2)
+            
+    def add_special_str(msg):
+        list_str = [i+'?' for i in msg]
+        return ''.join(list_str)
+        
+    half_len = int(len(msg) / 2)
+    l = msg[:half_len]
+    r = msg[half_len:]
+    new_l = add_special_str(msg[:half_len])
+    new_r = add_special_str(msg[half_len:])
+    list_danmu = [msg, new_l+r, l+new_r, new_l+new_r]
+    print('本轮次测试弹幕群', list_danmu)
+    for i in list_danmu:
+        print('_________________________________________')
+        if await check_send(i, roomId):
             return
-        await asyncio.sleep(2)
+    print('发送失败，请反馈', roomId, msg)
     
     
 async def enter_room(roomid):
