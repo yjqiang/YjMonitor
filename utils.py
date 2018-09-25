@@ -112,5 +112,6 @@ async def getRecommend():
         if len(unique_list) == 6000:
             break
     print(f'总获取房间{len(unique_list)}')
-    return unique_list
+    return unique_list + [0] * (6000 - len(unique_list))
+
 
