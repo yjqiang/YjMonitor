@@ -2,6 +2,7 @@
 import time
 import printer
 from bilibili import bilibili
+from configloader import ConfigLoader
 import asyncio
 
 
@@ -103,5 +104,13 @@ async def getRecommend():
         if id1 not in unique_list:
             unique_list.append(id1)
     print(f'总获取房间{len(unique_list)}')
-    return unique_list + [0] * (6000 - len(unique_list))
+    
+    roomid_conf = ConfigLoader().list_roomid
+    for i in roomid_conf:
+        if i not in unique_list:
+            unique_list.append(i)
+        if len(unique_list) == 6000:
+            break
+    print(f'总获取房间{len(unique_list)}')
+    return unique_list
 

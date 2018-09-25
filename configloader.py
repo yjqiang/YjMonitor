@@ -27,6 +27,7 @@ class ConfigLoader():
             colorfile = f'{fileDir}/conf/color.toml'
             userfile = f'{fileDir}/conf/user.toml'
             bilibilifile = f'{fileDir}/conf/bilibili.toml'
+            roomidfile = f'{fileDir}/conf/roomid.toml'
             
             cls.instance.colorfile = colorfile
             cls.instance.dic_color = cls.instance.load_color()
@@ -39,6 +40,10 @@ class ConfigLoader():
             cls.instance.bilibilifile = bilibilifile
             cls.instance.dic_bilibili = cls.instance.load_bilibili()
             # print(cls.instance.dic_bilibili)
+            
+            cls.instance.roomidfile = roomidfile
+            cls.instance.list_roomid = cls.instance.load_roomid()['roomid']
+            # print(cls.instance.dic_user)
             print("# 初始化完成")
         return cls.instance
     
@@ -79,6 +84,11 @@ class ConfigLoader():
         with open(self.userfile, encoding="utf-8") as f:
             dic_user = toml.load(f)
         return dic_user
+        
+    def load_roomid(self):
+        with open(self.roomidfile, encoding="utf-8") as f:
+            dic_roomid = toml.load(f)
+        return dic_roomid
 
     
     
