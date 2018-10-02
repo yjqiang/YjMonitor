@@ -25,11 +25,9 @@ class Biliconsole(Cmd):
         
     def do_1(self, line):
         Statistics.getlist()
-        Statistics.getresult()
         
     def do_check(self, line):
         Rafflehandler.getlist()
-        Statistics.checklist()
         
     def append2list_console(self, request):
         asyncio.run_coroutine_threadsafe(self.excute_async(request), self.loop)
