@@ -1,5 +1,4 @@
 from bilibili import bilibili
-from statistics import Statistics
 from configloader import ConfigLoader
 import utils
 import asyncio
@@ -65,13 +64,11 @@ def dec2base(int_x, base):
     return ''.join(digits)
 
 async def handle_1_room_storm(target, roomid, stormid):
-    result = await utils.enter_room(roomid)
-    if result:
-        if not Rafflehandler().check_duplicate(stormid):
-            Rafflehandler().add2raffle_id(stormid)
-            stormid = dec2base(int(stormid), 62)
-            roomid = dec2base(int(roomid), 62)
-            await utils.send_danmu_msg_web(f'{roomid}~{stormid}', target)
+    if not Rafflehandler().check_duplicate(stormid):
+        Rafflehandler().add2raffle_id(stormid)
+        stormid = dec2base(int(stormid), 62)
+        roomid = dec2base(int(roomid), 62)
+        await utils.send_danmu_msg_web(f'{roomid}~{stormid}', target)
 
 async def handle_1_room_check(target):
     START = ConfigLoader().dic_user['other_control']['START']
@@ -79,26 +76,24 @@ async def handle_1_room_check(target):
     await utils.send_danmu_msg_web(f'{START}={END} v1.1', target)
 
 async def handle_1_room_guard(target, roomid):
-    result = await utils.enter_room(roomid)
-    if result:
-        for i in range(20):
-            json_response1 = await bilibili.get_giftlist_of_guard(roomid)
-            # print(json_response1)
-            if not json_response1['data']:
-                await asyncio.sleep(1)
-            else:
-                break
+    for i in range(20):
+        json_response1 = await bilibili.get_giftlist_of_guard(roomid)
+        # print(json_response1)
         if not json_response1['data']:
-            print(f'{roomid}没有guard或者guard已经领取')
-            return
-        list_available_raffleid = []
-        for j in json_response1['data']:
-            print('获取到编号', j['id'])
-            id = j['id']
-            if not Rafflehandler().check_duplicate(id):
-                Rafflehandler().add2raffle_id(id)
-                id = dec2base(int(id), 62)
-                list_available_raffleid.append(id)
-        roomid = dec2base(int(roomid), 62)
-        for raffleid in list_available_raffleid:
-            await utils.send_danmu_msg_web(f'{roomid}+{raffleid}', target)
+            await asyncio.sleep(1)
+        else:
+            break
+    if not json_response1['data']:
+        print(f'{roomid}没有guard或者guard已经领取')
+        return
+    list_available_raffleid = []
+    for j in json_response1['data']:
+        print('获取到编号', j['id'])
+        id = j['id']
+        if not Rafflehandler().check_duplicate(id):
+            Rafflehandler().add2raffle_id(id)
+            id = dec2base(int(id), 62)
+            list_available_raffleid.append(id)
+    roomid = dec2base(int(roomid), 62)
+    for raffleid in list_available_raffleid:
+        await utils.send_danmu_msg_web(f'{roomid}+{raffleid}', target)
