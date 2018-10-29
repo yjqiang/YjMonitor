@@ -4,7 +4,6 @@ import printer
 from bilibili import bilibili
 from configloader import ConfigLoader
 import asyncio
-import sys
 
 
 def CurrentTime():
@@ -69,7 +68,7 @@ class DanmuSender:
                 return
             await asyncio.sleep(1.5)
         print('发送失败，请反馈', msg)
-        sys.exit(-1)
+        printer.warn(f'弹幕{msg}尝试失败，请反馈')
         
     def add2queue(self, msg, priority):
         self.queue_raffle.put_nowait((priority, msg))
