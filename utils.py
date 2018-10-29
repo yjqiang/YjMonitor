@@ -28,12 +28,17 @@ async def send_danmu_msg_web(msg, roomId):
         list_str = [i+'?' for i in msg]
         return ''.join(list_str)
         
+    def add_special_str1(msg):
+        len_msg = len(msg)
+        return [f'{msg[:i]}????{msg[i:]}' for i in range(1, len_msg)]
+        
     half_len = int(len(msg) / 2)
     l = msg[:half_len]
     r = msg[half_len:]
     new_l = add_special_str(msg[:half_len])
     new_r = add_special_str(msg[half_len:])
     list_danmu = [msg, new_l+r, l+new_r, new_l+new_r]
+    list_danmu += add_special_str1(msg)
     print('本轮次测试弹幕群', list_danmu)
     for i in list_danmu:
         print('_________________________________________')
