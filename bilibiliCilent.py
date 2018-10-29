@@ -146,19 +146,19 @@ class bilibiliClient():
             msg = dic['info'][1]
             if msg == 'check':
                 printer.info([f'弹幕监控检测到{self.roomid:^9}的检测请求'], True)
-                rafflehandler.Rafflehandler.Put2Queue((self.target,), rafflehandler.handle_1_room_check)
+                rafflehandler.Rafflehandler.Put2Queue((), rafflehandler.handle_1_room_check)
 
     def DanMuraffle(self, dic):
         cmd = dic['cmd']
         if cmd == 'SPECIAL_GIFT':
             if 'data' in dic and '39' in dic['data'] and dic['data']['39']['action'] == 'start':
                 printer.info([f'房间号{self.roomid}有节奏风暴'], True)
-                rafflehandler.Rafflehandler.Put2Queue((self.target, self.roomid, dic['data']['39']['id']), rafflehandler.handle_1_room_storm)
+                rafflehandler.Rafflehandler.Put2Queue((self.roomid, dic['data']['39']['id']), rafflehandler.handle_1_room_storm)
                 Statistics.append2pushed_raffle('节奏风暴', 1)
 
         if cmd == 'GUARD_MSG':
             if 'buy_type' in dic and dic['buy_type'] != 1:
                 # print(dic)
                 printer.info([f'{self.area_id}号弹幕监控检测到{self.roomid:^9}的提督/舰长'], True)
-                rafflehandler.Rafflehandler.Put2Queue((self.target, self.roomid), rafflehandler.handle_1_room_guard)
+                rafflehandler.Rafflehandler.Put2Queue((self.roomid,), rafflehandler.handle_1_room_guard)
                 Statistics.append2pushed_raffle('提督/舰长', area_id=self.area_id)

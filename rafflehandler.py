@@ -63,19 +63,21 @@ def dec2base(int_x, base):
 
     return ''.join(digits)
 
-async def handle_1_room_storm(target, roomid, stormid):
+async def handle_1_room_storm(roomid, stormid):
+    print('获取到编号', stormid)
     if not Rafflehandler().check_duplicate(stormid):
+        print('确认到编号', stormid)
         Rafflehandler().add2raffle_id(stormid)
         stormid = dec2base(int(stormid), 62)
         roomid = dec2base(int(roomid), 62)
-        await utils.send_danmu_msg_web(f'{roomid}~{stormid}', target)
+        await utils.send_danmu_msg_web(f'{roomid}~{stormid}', 0)
 
-async def handle_1_room_check(target):
+async def handle_1_room_check():
     START = ConfigLoader().dic_user['other_control']['START']
     END = ConfigLoader().dic_user['other_control']['END']
-    await utils.send_danmu_msg_web(f'{START}={END} v1.1.1', target)
+    await utils.send_danmu_msg_web(f'{START}={END} v1.1.1', 0)
 
-async def handle_1_room_guard(target, roomid):
+async def handle_1_room_guard(roomid):
     for i in range(20):
         json_response1 = await bilibili.get_giftlist_of_guard(roomid)
         # print(json_response1)
@@ -91,9 +93,10 @@ async def handle_1_room_guard(target, roomid):
         print('获取到编号', j['id'])
         id = j['id']
         if not Rafflehandler().check_duplicate(id):
+            print('确认到编号', id)
             Rafflehandler().add2raffle_id(id)
             id = dec2base(int(id), 62)
             list_available_raffleid.append(id)
     roomid = dec2base(int(roomid), 62)
     for raffleid in list_available_raffleid:
-        await utils.send_danmu_msg_web(f'{roomid}+{raffleid}', target)
+        await utils.send_danmu_msg_web(f'{roomid}+{raffleid}', 1)

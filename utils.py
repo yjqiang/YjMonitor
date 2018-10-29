@@ -4,47 +4,74 @@ import printer
 from bilibili import bilibili
 from configloader import ConfigLoader
 import asyncio
+import sys
 
 
 def CurrentTime():
     currenttime = int(time.time())
     return str(currenttime)
 
-async def send_danmu_msg_web(msg, roomId):
-    async def check_send(msg, roomId):
+        
+class DanmuSender:
+    __slots__ = ('queue_raffle', 'room_id')
+    instance = None
+
+    def __new__(cls, room_id=None):
+        if not cls.instance:
+            cls.instance = super(DanmuSender, cls).__new__(cls)
+            cls.instance.queue_raffle = asyncio.PriorityQueue()
+            cls.instance.room_id = room_id
+        return cls.instance
+        
+    async def run(self):
+        while True:
+            priority, msg = await self.queue_raffle.get()
+            await self.send(msg)
+            await asyncio.sleep(1.5)
+    
+    async def check_send(self, msg):
+        roomId = self.room_id
         while True:
             json_response = await bilibili.request_send_danmu_msg_web(msg, roomId)
             if not json_response['code'] and not json_response['msg']:
-                print(f'已发送弹幕{msg}到{roomId}')
+                printer.info([f'已发送弹幕{msg}到{roomId}'], True)
                 return True
             elif not json_response['code'] and json_response['msg'] == '内容非法':
-                print('检测非法反馈, 正在进行下一步处理', msg)
+                printer.info([f'检测非法反馈, 正在进行下一步处理 {msg}'], True)
                 return False
             else:
                 print(json_response, msg)
-            await asyncio.sleep(2)
+            await asyncio.sleep(1.5)
             
-    def add_special_str(msg):
-        list_str = [i+'?' for i in msg]
-        return ''.join(list_str)
+    def add_special_str0(self, msg):
+        half_len = int(len(msg) / 2)
+        l = msg[:half_len]
+        r = msg[half_len:]
+        new_l = ''.join([i+'?' for i in l])
+        new_r = ''.join([i+'?' for i in r])
+        return [msg, new_l+r, l+new_r, new_l+new_r]
         
-    def add_special_str1(msg):
+    def add_special_str1(self, msg):
         len_msg = len(msg)
         return [f'{msg[:i]}????{msg[i:]}' for i in range(1, len_msg)]
+            
+    async def send(self, msg):
+        list_danmu = self.add_special_str0(msg) + self.add_special_str1(msg)
+        print('本轮次测试弹幕群', list_danmu)
+        for i in list_danmu:
+            print('_________________________________________')
+            if await self.check_send(i):
+                return
+            await asyncio.sleep(1.5)
+        print('发送失败，请反馈', msg)
+        sys.exit(-1)
         
-    half_len = int(len(msg) / 2)
-    l = msg[:half_len]
-    r = msg[half_len:]
-    new_l = add_special_str(msg[:half_len])
-    new_r = add_special_str(msg[half_len:])
-    list_danmu = [msg, new_l+r, l+new_r, new_l+new_r]
-    list_danmu += add_special_str1(msg)
-    print('本轮次测试弹幕群', list_danmu)
-    for i in list_danmu:
-        print('_________________________________________')
-        if await check_send(i, roomId):
-            return
-    print('发送失败，请反馈', roomId, msg)
+    def add2queue(self, msg, priority):
+        self.queue_raffle.put_nowait((priority, msg))
+        
+
+async def send_danmu_msg_web(msg, priority):
+    DanmuSender().add2queue(msg, priority)
     
     
 async def enter_room(roomid):

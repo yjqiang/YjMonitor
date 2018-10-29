@@ -25,6 +25,7 @@ fileDir = os.path.dirname(os.path.realpath('__file__'))
 ConfigLoader(fileDir)
 START = ConfigLoader().dic_user['other_control']['START']
 END = ConfigLoader().dic_user['other_control']['END']
+danmusender = utils.DanmuSender(ConfigLoader().dic_user['other_control']['default_monitor_roomid'])
 
 # print('Hello world.')
 printer = Printer()
@@ -64,7 +65,8 @@ async def fetch_roomid_periodic():
         await asyncio.sleep(30)
 tasks = [
     fetch_roomid_periodic(),
-    yjchecking.run()
+    yjchecking.run(),
+    danmusender.run()
     # bili_timer.run(),
 
 ]
