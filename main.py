@@ -55,7 +55,7 @@ console_thread.start()
 async def fetch_roomid_periodic():
     while True:
         now = datetime.now()
-        print('当前时间为', now.minute, now.second)
+        print(f'当前时间为 {now.hour:0>2}:{now.minute:0>2}:{now.second:0>2}')
         if (now.minute == 15 or now.minute == 45) and now.second <= 35:
             print('到达设定时间，正在重新查看房间')
             list_realroomid = await utils.getRecommend()

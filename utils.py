@@ -37,7 +37,7 @@ class DanmuSender:
                 printer.info([f'已发送弹幕{msg}到{roomId}'], True)
                 return True
             elif not json_response['code'] and json_response['msg'] == '内容非法':
-                printer.info([f'检测非法反馈, 正在进行下一步处理 {msg}'], True)
+                printer.info([f'非法反馈, 准备后续的处理 {msg}'], True)
                 return False
             else:
                 print(json_response, msg)
@@ -56,11 +56,12 @@ class DanmuSender:
         return [f'{msg[:i]}????{msg[i:]}' for i in range(1, len_msg)]
             
     async def send(self, msg):
+        print('_________________________________________')
         list_danmu = self.add_special_str0(msg) + self.add_special_str1(msg)
-        print('本轮次测试弹幕群', list_danmu)
+        # print('本轮次测试弹幕群', list_danmu)
         for i in list_danmu:
-            print('_________________________________________')
             if await self.check_send(i):
+                print('_________________________________________')
                 return
             await asyncio.sleep(1.5)
         print('发送失败，请反馈', msg)
