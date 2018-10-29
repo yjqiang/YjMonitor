@@ -33,12 +33,16 @@ class DanmuSender:
         roomId = self.room_id
         while True:
             json_response = await bilibili.request_send_danmu_msg_web(msg, roomId)
-            if not json_response['code'] and not json_response['msg']:
+            code = json_response['code']
+            msg_rsp = json_response['msg']
+            if not code and not msg_rsp:
                 printer.info([f'已发送弹幕{msg}到{roomId}'], True)
                 return True
-            elif not json_response['code'] and json_response['msg'] == '内容非法':
+            elif not code and msg_rsp == '内容非法':
                 printer.info([f'非法反馈, 准备后续的处理 {msg}'], True)
                 return False
+            elif not code and msg_rsp == 'msg in 1s':
+                printer.info(['弹幕发送频繁提示'], True)
             else:
                 print(json_response, msg)
             await asyncio.sleep(1.5)
