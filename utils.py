@@ -126,7 +126,7 @@ async def getRecommend():
     async def fetch_room(url):
         roomidlist = []
         flag = 0
-        for x in range(1, 200):
+        for x in range(1, 250):
             try:
                 json_data = await bilibili().get_roomids(url, x)
                 if not json_data['data']:
@@ -139,7 +139,8 @@ async def getRecommend():
                     # print(room['roomid'])
             except:
                 print(url, x)
-        print(len(roomidlist))
+            if not (x % 10):
+                print(f'截止第{x}页，获取了{len(roomidlist)}个房间(可能重复)')
         unique_list = []
         for id in roomidlist:
             if id not in unique_list:
@@ -155,7 +156,7 @@ async def getRecommend():
     roomlist1 = await fetch_room(urls[1])
     len_0 = len(roomlist0)
     len_1 = len(roomlist1)
-    print('两种获取热度房间的方法活得房间数目', len_0, len_1)
+    print('两种获取热度房间的方法获得房间数目', len_0, len_1)
     unique_list = []
     for i, j in zip_longest(roomlist0, roomlist1):
         if i is not None and i not in unique_list:
