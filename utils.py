@@ -1,9 +1,12 @@
 
 import time
+import re
+from itertools import zip_longest
 import printer
 from bilibili import bilibili
 from configloader import ConfigLoader
 import asyncio
+import sys
 
 
 def CurrentTime():
@@ -46,6 +49,24 @@ class DanmuSender:
                 print(json_response, msg)
             await asyncio.sleep(1.5)
             
+    def special_handle(self, msg):
+        def handle_p4P4(match):
+            ori = match.group()
+            add = '?' * (6 - len(ori))
+            new = ori[:1] + add + ori[1:]
+            return new
+                        
+        def handle_j8J8(match):
+            ori = match.group()
+            add = '?'
+            new = ori[:1] + add + ori[1:]
+            return new
+        result = msg
+        result = re.sub('[Jj]8', handle_j8J8, result)
+        result = re.sub('[Pp]([^Pp4]*)4', handle_p4P4, result)
+        assert result.replace('?', '') == msg
+        return result
+            
     def add_special_str0(self, msg):
         half_len = int(len(msg) / 2)
         l = msg[:half_len]
@@ -60,6 +81,7 @@ class DanmuSender:
             
     async def send(self, msg):
         print('_________________________________________')
+        msg = self.special_handle(msg)
         list_danmu = self.add_special_str0(msg) + self.add_special_str1(msg)
         # print('本轮次测试弹幕群', list_danmu)
         for i in list_danmu:
@@ -67,8 +89,10 @@ class DanmuSender:
                 print('_________________________________________')
                 return
             await asyncio.sleep(1.5)
+            printer.warn(f'弹幕{i}尝试')
         print('发送失败，请反馈', msg)
         printer.warn(f'弹幕{msg}尝试失败，请反馈')
+        sys.exit(-1)
         
     def add2queue(self, msg, priority):
         self.queue_raffle.put_nowait((priority, msg))
@@ -129,16 +153,13 @@ async def getRecommend():
     roomlist1 = await fetch_room(urls[1])
     len_0 = len(roomlist0)
     len_1 = len(roomlist1)
-    print(len_0, len_1)
+    print('两种获取热度房间的方法活得房间数目', len_0, len_1)
     unique_list = []
-    len_sum = (min(len_0, len_1))
-    for i in range(len_sum):
-        id0 = roomlist0[i]
-        id1 = roomlist1[i]
-        if id0 not in unique_list:
-            unique_list.append(id0)
-        if id1 not in unique_list:
-            unique_list.append(id1)
+    for i, j in zip_longest(roomlist0, roomlist1):
+        if i is not None and i not in unique_list:
+            unique_list.append(i)
+        if j is not None and j not in unique_list:
+            unique_list.append(j)
     print(f'总获取房间{len(unique_list)}')
     
     roomid_conf = ConfigLoader().list_roomid
