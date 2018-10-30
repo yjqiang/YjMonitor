@@ -64,6 +64,7 @@ class DanmuSender:
         new = re.sub('04', add_words, new)
         new = re.sub('JB', add_words, new)
         new = re.sub('JJ', add_words, new)
+        new = re.sub('\+V', add_words, new)
         new = re.sub('[Pp][^Pp4]{,3}4', lambda match: add_words(match, 4), new)
         assert new.replace('?', '') == msg
         return new
