@@ -45,6 +45,9 @@ class DanmuSender:
                 return False
             elif not code and msg_rsp == 'msg in 1s':
                 printer.info(['弹幕发送频繁提示'], True)
+            elif code == -500:
+                printer.warn(f'弹幕{msg}提示超出限制长度')
+                return False
             else:
                 print(json_response, msg)
             await asyncio.sleep(1.5)
