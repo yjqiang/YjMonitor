@@ -53,22 +53,18 @@ class DanmuSender:
             await asyncio.sleep(1.5)
             
     def special_handle(self, msg):
-        def handle_p4P4(match):
+        def add_words(match, num=1, word='?'):
             ori = match.group()
-            add = '?' * (6 - len(ori))
+            add = '?' * (num - len(ori) + 2)
             new = ori[:1] + add + ori[1:]
             return new
-                        
-        def handle_j8J8(match):
-            ori = match.group()
-            add = '?'
-            new = ori[:1] + add + ori[1:]
-            return new
-        result = msg
-        result = re.sub('[Jj]8', handle_j8J8, result)
-        result = re.sub('[Pp][^Pp4]{,3}4', handle_p4P4, result)
-        assert result.replace('?', '') == msg
-        return result
+            
+        new = msg
+        new = re.sub('[Jj]8', add_words, new)
+        new = re.sub('04', add_words, new)
+        new = re.sub('[Pp][^Pp4]{,3}4', lambda match: add_words(match, 4), new)
+        assert new.replace('?', '') == msg
+        return new
             
     def add_special_str0(self, msg):
         half_len = int(len(msg) / 2)
