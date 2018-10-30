@@ -75,7 +75,7 @@ async def handle_1_room_storm(roomid, stormid):
 async def handle_1_room_check():
     START = ConfigLoader().dic_user['other_control']['START']
     END = ConfigLoader().dic_user['other_control']['END']
-    await utils.send_danmu_msg_web(f'{START}={END} v1.1.1', 0)
+    await utils.send_danmu_msg_web(f'{START}={END} v1.2.0', 0)
 
 async def handle_1_room_guard(roomid):
     for i in range(20):
