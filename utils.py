@@ -90,12 +90,13 @@ class DanmuSender:
         for i in list_danmu:
             if await self.check_send(i):
                 print('_________________________________________')
-                return
+                return True
             await asyncio.sleep(1.5)
             printer.warn(f'弹幕{i}尝试')
         print('发送失败，请反馈', msg)
         printer.warn(f'弹幕{msg}尝试失败，请反馈')
         sys.exit(-1)
+        return False
         
     def add2queue(self, msg, priority):
         self.queue_raffle.put_nowait((priority, msg))
