@@ -66,6 +66,7 @@ class DanmuSender:
         new = re.sub('JJ', add_words, new)
         new = re.sub('\+V', add_words, new)
         new = re.sub('[Pp][^Pp4]{,3}4', lambda match: add_words(match, 4), new)
+        new = re.sub('[Kk][^Kk]*?[Ee][^Kk]*?[Yy]', lambda match: add_words(match, 7), new)
         assert new.replace('?', '') == msg
         return new
             
@@ -79,7 +80,7 @@ class DanmuSender:
         
     def add_special_str1(self, msg):
         len_msg = len(msg)
-        return [f'{msg[:i]}????{msg[i:]}' for i in range(1, len_msg)]
+        return [f'{msg[:i]}??????{msg[i:]}' for i in range(1, len_msg)]
             
     async def send(self, msg):
         print('_________________________________________')
