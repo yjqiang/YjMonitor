@@ -129,6 +129,7 @@ async def getRecommend():
         roomidlist = []
         flag = 0
         for x in range(1, 250):
+            await asyncio.sleep(0.25)
             try:
                 json_data = await bilibili().get_roomids(url, x)
                 if not json_data['data']:
