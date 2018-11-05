@@ -95,7 +95,7 @@ class DanmuSender:
             printer.warn(f'弹幕{i}尝试')
         print('发送失败，请反馈', msg)
         printer.warn(f'弹幕{msg}尝试失败，请反馈')
-        sys.exit(-1)
+        # sys.exit(-1)
         return False
         
     def add2queue(self, msg, priority):
