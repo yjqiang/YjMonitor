@@ -28,16 +28,28 @@ class DanmuSender:
     async def run(self):
         i = 0
         while True:
-            priority, str_roomid, str_raffleid = await self.queue_raffle.get()
-            await self.send(f'{i}.{str_roomid}')
-            await asyncio.sleep(1.5)
-            await self.send(f'{i + 1}.{str_raffleid}')
-            await asyncio.sleep(1.5)
+            priority, msg = await self.queue_raffle.get()
+            if priority == -1:
+                await self.send(msg)
+                await asyncio.sleep(1.5)
+            else:
+                half_len = int(len(msg) / 2)
+                l = msg[:half_len]
+                r = msg[half_len:]
+                msg = f'{i}.{l}'
+                msg = f'{msg}{57 - ord(msg[0])}'
+                await self.send(msg)
+                await asyncio.sleep(1.5)
+                
+                msg = f'{i + 1}.{r}'
+                msg = f'{msg}{57 - ord(msg[0])}'
+                await self.send(msg)
+                await asyncio.sleep(1.5)
             i = (i + 2) % 1000
     
     async def check_send(self, msg):
         roomId = self.room_id
-        while True:
+        for i in range(15):
             json_response = await bilibili.request_send_danmu_msg_web(msg, roomId)
             code = json_response['code']
             msg_rsp = json_response['msg']
@@ -55,6 +67,7 @@ class DanmuSender:
             else:
                 print(json_response, msg)
             await asyncio.sleep(1.5)
+        return False
             
     def special_handle(self, msg):
         def add_words(match, num=1, word='?'):
@@ -82,8 +95,6 @@ class DanmuSender:
             
     async def send(self, msg):
         print('_________________________________________')
-        # 加校验码
-        msg = f'{msg}{57 - ord(msg[0])}'
         msg = self.special_handle(msg)
         list_danmu = self.add_special_str0(msg) + self.add_special_str1(msg)
         # print('本轮次测试弹幕群', list_danmu)
@@ -98,12 +109,13 @@ class DanmuSender:
         # sys.exit(-1)
         return False
         
-    def add2queue(self, priority, str_roomid, str_raffleid):
-        self.queue_raffle.put_nowait((priority, str_roomid, str_raffleid))
+    def add2queue(self, priority, msg):
+        self.queue_raffle.put_nowait((priority, msg))
         
 
-async def send_danmu_msg_web(priority, str_roomid, str_raffleid):
-    DanmuSender().add2queue(priority, str_roomid, str_raffleid)
+# 在这里priority也作为一个type
+async def send_danmu_msg_web(priority, msg):
+    DanmuSender().add2queue(priority, msg)
     
     
 async def enter_room(roomid):
