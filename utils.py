@@ -26,10 +26,14 @@ class DanmuSender:
         return cls.instance
         
     async def run(self):
+        i = 0
         while True:
-            priority, msg = await self.queue_raffle.get()
-            await self.send(msg)
+            priority, str_roomid, str_raffleid = await self.queue_raffle.get()
+            await self.send(f'{i}.{str_roomid}')
             await asyncio.sleep(1.5)
+            await self.send(f'{i + 1}.{str_raffleid}')
+            await asyncio.sleep(1.5)
+            i = (i + 2) % 1000
     
     async def check_send(self, msg):
         roomId = self.room_id
@@ -60,13 +64,7 @@ class DanmuSender:
             return new
             
         new = msg
-        new = re.sub('[Jj]8', add_words, new)
         new = re.sub('04', add_words, new)
-        new = re.sub('JB', add_words, new)
-        new = re.sub('JJ', add_words, new)
-        new = re.sub('\+V', add_words, new)
-        new = re.sub('[Pp][^Pp4]{,3}4', lambda match: add_words(match, 4), new)
-        new = re.sub('[Kk][^Kk]*?[Ee][^Kk]*?[Yy]', lambda match: add_words(match, 7), new)
         assert new.replace('?', '') == msg
         return new
             
@@ -84,6 +82,8 @@ class DanmuSender:
             
     async def send(self, msg):
         print('_________________________________________')
+        # 加校验码
+        msg = f'{msg}{57 - ord(msg[0])}'
         msg = self.special_handle(msg)
         list_danmu = self.add_special_str0(msg) + self.add_special_str1(msg)
         # print('本轮次测试弹幕群', list_danmu)
@@ -98,12 +98,12 @@ class DanmuSender:
         # sys.exit(-1)
         return False
         
-    def add2queue(self, msg, priority):
-        self.queue_raffle.put_nowait((priority, msg))
+    def add2queue(self, priority, str_roomid, str_raffleid):
+        self.queue_raffle.put_nowait((priority, str_roomid, str_raffleid))
         
 
-async def send_danmu_msg_web(msg, priority):
-    DanmuSender().add2queue(msg, priority)
+async def send_danmu_msg_web(priority, str_roomid, str_raffleid):
+    DanmuSender().add2queue(priority, str_roomid, str_raffleid)
     
     
 async def enter_room(roomid):

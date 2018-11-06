@@ -68,14 +68,12 @@ async def handle_1_room_storm(roomid, stormid):
     if not Rafflehandler().check_duplicate(stormid):
         print('确认到编号', stormid)
         Rafflehandler().add2raffle_id(stormid)
-        stormid = dec2base(int(stormid), 62)
-        roomid = dec2base(int(roomid), 62)
-        await utils.send_danmu_msg_web(f'{roomid}~{stormid}', 0)
+        await utils.send_danmu_msg_web(0, f'{roomid}~', str(stormid))
 
 async def handle_1_room_check():
     START = ConfigLoader().dic_user['other_control']['START']
     END = ConfigLoader().dic_user['other_control']['END']
-    await utils.send_danmu_msg_web(f'{START}={END} v1.2.0', 0)
+    await utils.send_danmu_msg_web(0, f'v1.3.0', f'{START}={END}')
 
 async def handle_1_room_guard(roomid):
     for i in range(20):
@@ -95,8 +93,6 @@ async def handle_1_room_guard(roomid):
         if not Rafflehandler().check_duplicate(id):
             print('确认到编号', id)
             Rafflehandler().add2raffle_id(id)
-            id = dec2base(int(id), 62)
             list_available_raffleid.append(id)
-    roomid = dec2base(int(roomid), 62)
     for raffleid in list_available_raffleid:
-        await utils.send_danmu_msg_web(f'{roomid}+{raffleid}', 1)
+        await utils.send_danmu_msg_web(1, f'{roomid}+', str(raffleid))
