@@ -15,7 +15,6 @@ def CurrentTime():
 
         
 class DanmuSender:
-    __slots__ = ('queue_raffle', 'room_id')
     instance = None
 
     def __new__(cls, room_id=None):
@@ -23,27 +22,39 @@ class DanmuSender:
             cls.instance = super(DanmuSender, cls).__new__(cls)
             cls.instance.queue_raffle = asyncio.PriorityQueue()
             cls.instance.room_id = room_id
+            cls.instance.__keys = 'ΑαΒβΓγΔδΕεΖζΗηΘθΙιΚκ∧λΜμΝνΞξΟο∏πΡρ∑σΤτΥυΦφΧχΨψΩωабвгдеёжзийклмнопрстуфхцчъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧЪЫЬЭЮЯ'
+            cls.instance.__reverse_keys = {value: i for i, value in enumerate(cls.instance.__keys)}
         return cls.instance
+        
+    def __dec2base(self, int_x, base=110):
+        digits = []
+        if not int_x:
+            digits = [self.__keys[0]]
+        while int_x:
+            digits.append(self.__keys[int(int_x % base)])
+            int_x = int(int_x / base)
+        digits.reverse()
+        return ''.join(digits)
         
     async def run(self):
         i = 0
         while True:
-            priority, msg = await self.queue_raffle.get()
-            if priority == -1:
-                await self.send(msg)
+            type, raffle_id, room_id = await self.queue_raffle.get()
+            if type == -1:
+                await self.send(raffle_id)
                 await asyncio.sleep(1.5)
             else:
-                half_len = int(len(msg) / 2)
-                l = msg[:half_len]
-                r = msg[half_len:]
-                msg = f'{i}.{l}'
-                msg = f'{msg}{57 - ord(msg[0])}'
-                await self.send(msg)
+                if type == 0:
+                    str_type = '~'
+                elif type == 1:
+                    str_type = '+'
+                l = f'{self.__dec2base(i)}.{self.__dec2base(raffle_id)}{str_type}'
+                r = f'{self.__dec2base(i + 1)}.{self.__dec2base(room_id)}{str_type}'
+                l_varified = l + self.__keys[109 - self.__reverse_keys[l[0]]]
+                r_varified = r + self.__keys[109 - self.__reverse_keys[r[0]]]
+                await self.send(l_varified)
                 await asyncio.sleep(1.5)
-                
-                msg = f'{i + 1}.{r}'
-                msg = f'{msg}{57 - ord(msg[0])}'
-                await self.send(msg)
+                await self.send(r_varified)
                 await asyncio.sleep(1.5)
             i = (i + 2) % 1000
     
@@ -109,13 +120,13 @@ class DanmuSender:
         # sys.exit(-1)
         return False
         
-    def add2queue(self, priority, msg):
-        self.queue_raffle.put_nowait((priority, msg))
+    async def add2queue(self, *args):
+        await self.queue_raffle.put(args)
         
 
 # 在这里priority也作为一个type
-async def send_danmu_msg_web(priority, msg):
-    DanmuSender().add2queue(priority, msg)
+async def send_danmu_msg_web(*args):
+    await DanmuSender().add2queue(*args)
     
     
 async def enter_room(roomid):
@@ -139,23 +150,27 @@ async def enter_room(roomid):
 async def getRecommend():
     async def fetch_room(url):
         roomidlist = []
-        flag = 0
+        should_stop = False
         for x in range(1, 250):
-            await asyncio.sleep(0.25)
-            try:
-                json_data = await bilibili().get_roomids(url, x)
-                if not json_data['data']:
-                    flag += 1
-                if flag > 3:
-                    print(x)
-                    break
-                for room in json_data['data']:
-                    roomidlist.append(room['roomid'])
-                    # print(room['roomid'])
-            except:
-                print(url, x)
             if not (x % 10):
                 print(f'截止第{x}页，获取了{len(roomidlist)}个房间(可能重复)')
+            
+            json_data = await bilibili().get_roomids(url, x)
+            if not json_data['data']:
+                break
+            for room in json_data['data']:
+                if room['online'] <= 100:
+                    pass
+                    should_stop = True
+                    print(room)
+                    break
+                roomidlist.append(room['roomid'])
+            if should_stop:
+                print(f'截止第{x}页，获取了{len(roomidlist)}个房间(可能重复)')
+                break
+            
+        print('去重之前', len(roomidlist))
+
         unique_list = []
         for id in roomidlist:
             if id not in unique_list:
