@@ -22,7 +22,7 @@ class DanmuSender:
             cls.instance = super(DanmuSender, cls).__new__(cls)
             cls.instance.queue_raffle = asyncio.PriorityQueue()
             cls.instance.room_id = room_id
-            cls.instance.__keys = '飠牜饣卩卪厸厶厽孓宀巛巜彳廴彡彐彳忄扌攵氵灬爫犭疒癶礻糹纟罒罓耂虍訁覀兦亼亽亖亗吂卝匸皕旡玊尐幵朩囘囙囜囝囟囡団囤囥囦囧囨囩囪囫囬囮囯困囱囲図囵囶囷囸囹固囻囼图囿圀圁圂圃圄圅圆圇圉圊圌圍圎圏圐圑園圓圔圕圖圗團圙圚圛圜圝圞'
+            cls.instance.__keys = '阝飠牜饣卩卪厸厶厽孓宀巛巜彳廴彡彐忄扌攵氵灬爫犭疒癶礻糹纟罒罓耂虍訁覀兦亼亽亖亗吂卝匸皕旡玊尐幵朩囘囙囜囝囟囡団囤囥囦囧囨囩囪囫囬囮囯困囱囲図囵囶囷囸囹固囻囼图囿圀圁圂圃圄圅圆圇圉圊圌圍圎圏圐圑園圓圔圕圖圗團圙圚圛圜圝圞'
             
             cls.instance.__reverse_keys = {value: i for i, value in enumerate(cls.instance.__keys)}
         return cls.instance
