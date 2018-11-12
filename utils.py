@@ -147,6 +147,14 @@ async def enter_room(roomid):
             # await bilibili.post_watching_history(roomid)
             return True
             
+async def get_rooms_from_remote(start, end):
+    json_rsp = await bilibili().get_rooms_from_remote(start, end)
+    # print(json_rsp)
+    rooms = json_rsp['roomid']
+    print('总计获取', len(rooms))
+    print('起止指针', start, end)
+    return rooms
+            
             
 async def getRecommend():
     async def fetch_room(url):

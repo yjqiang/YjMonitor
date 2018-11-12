@@ -36,14 +36,13 @@ Statistics()
 
 list_realroomid = None
 # list_realroomid = ConfigLoader().dic_roomid['roomid']
-list_realroomid = loop.run_until_complete(asyncio.gather(utils.getRecommend()))[0]
+list_realroomid = loop.run_until_complete(asyncio.gather(utils.get_rooms_from_remote(START, END)))[0]
 print(list_realroomid[:5])
 
 rafflehandler = Rafflehandler()
 var_console = bili_console.Biliconsole(loop)
 
-
-list_raffle_connection = [connect.RaffleConnect(i - START + 1, list_realroomid[i]) for i in range(START, END)]
+list_raffle_connection = [connect.RaffleConnect(i, room) for i, room in enumerate(list_realroomid)]
 list_raffle_connection_task = [i.run() for i in list_raffle_connection]
 
 yjchecking = connect.RaffleConnect(-1, None)
@@ -58,8 +57,9 @@ async def fetch_roomid_periodic():
         print(f'当前时间为 {now.hour:0>2}:{now.minute:0>2}:{now.second:0>2}')
         if (now.minute == 15 or now.minute == 45) and now.second <= 35:
             print('到达设定时间，正在重新查看房间')
-            list_realroomid = await utils.getRecommend()
-            for connection, roomid in zip(list_raffle_connection, list_realroomid[START: END]):
+            # list_realroomid = await utils.getRecommend()
+            list_realroomid = await utils.get_rooms_from_remote(START, END)
+            for connection, roomid in zip(list_raffle_connection, list_realroomid):
                 await connection.reconnect(roomid)
         
         await asyncio.sleep(30)

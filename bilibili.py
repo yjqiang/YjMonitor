@@ -318,5 +318,10 @@ class bilibili():
     async def get_roomids(self, url, page_id):
         json_rsp = await self.other_session_get(f'{url}{page_id}')
         return json_rsp
+        
+    async def get_rooms_from_remote(self, start, end):
+        url = f'http://room.lc4t.cn:8000/dyn_rooms/{start}-{end}'
+        json_rsp = await self.other_session_get(url)
+        return json_rsp
 
 
