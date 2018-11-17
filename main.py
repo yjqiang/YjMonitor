@@ -57,10 +57,24 @@ async def fetch_roomid_periodic():
         print(f'当前时间为 {now.hour:0>2}:{now.minute:0>2}:{now.second:0>2}')
         if (now.minute == 10 or now.minute == 30 or now.minute == 50) and now.second <= 35:
             print('到达设定时间，正在重新查看房间')
-            # list_realroomid = await utils.getRecommend()
-            list_realroomid = await utils.get_rooms_from_remote(START, END)
-            for connection, roomid in zip(list_raffle_connection, list_realroomid):
+            old_rooms = [room.roomid for room in list_raffle_connection]
+            new_rooms = await utils.get_rooms_from_remote(START, END)
+            # 只重启那些不同的
+            set_new_rooms = set(new_rooms)
+            set_dup_new_rooms = set()
+            list_unique_old_index = []
+            for i, value in enumerate(old_rooms):
+                if value in set_new_rooms:
+                    set_dup_new_rooms.add(value)
+                else:
+                    list_unique_old_index.append(i)
+            set_unique_new_rooms = set_new_rooms - set_dup_new_rooms
+            print(len(set_unique_new_rooms), len(list_unique_old_index))
+            list_unique_connection = [list_raffle_connection[i] for i in list_unique_old_index]
+            for connection, roomid in zip(list_unique_connection, set_unique_new_rooms):
                 await connection.reconnect(roomid)
+                
+            await asyncio.sleep(60)
         
         await asyncio.sleep(30)
 tasks = [
