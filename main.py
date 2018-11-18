@@ -37,6 +37,9 @@ Statistics()
 list_realroomid = None
 # list_realroomid = ConfigLoader().dic_roomid['roomid']
 list_realroomid = loop.run_until_complete(asyncio.gather(utils.get_rooms_from_remote(START, END)))[0]
+if list_realroomid is None:
+    print('中心分发系统错误，初始化失败')
+    sys.exit(-1)
 print(list_realroomid[:5])
 
 rafflehandler = Rafflehandler()
@@ -59,6 +62,9 @@ async def fetch_roomid_periodic():
             print('到达设定时间，正在重新查看房间')
             old_rooms = [room.roomid for room in list_raffle_connection]
             new_rooms = await utils.get_rooms_from_remote(START, END)
+            if new_rooms is None:
+                await asyncio.sleep(60)
+                continue
             # 只重启那些不同的
             set_new_rooms = set(new_rooms)
             set_dup_new_rooms = set()

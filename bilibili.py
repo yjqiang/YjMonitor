@@ -160,17 +160,30 @@ class bilibili():
                 print(sys.exc_info()[0], sys.exc_info()[1], url)
                 continue
 
-    async def other_session_get(self, url, headers=None, data=None, params=None):
-        while True:
-            try:
-                async with self.other_session.get(url, headers=headers, data=data, params=params) as response:
-                    json_rsp = await self.get_json_rsp(response, url)
-                    if json_rsp is not None:
-                        return json_rsp
-            except:
-                # print('当前网络不好，正在重试，请反馈开发者!!!!')
-                print(sys.exc_info()[0], sys.exc_info()[1], url)
-                continue
+    async def other_session_get(self, url, headers=None, data=None, params=None, is_none_allowed=False):
+        if not is_none_allowed:
+            while True:
+                try:
+                    async with self.other_session.get(url, headers=headers, data=data, params=params) as response:
+                        json_rsp = await self.get_json_rsp(response, url)
+                        if json_rsp is not None:
+                            return json_rsp
+                except:
+                    # print('当前网络不好，正在重试，请反馈开发者!!!!')
+                    print(sys.exc_info()[0], sys.exc_info()[1], url)
+                    continue
+        else:
+            print('测试')
+            for i in range(10):
+                try:
+                    async with self.other_session.get(url, headers=headers, data=data, params=params) as response:
+                        json_rsp = await self.get_json_rsp(response, url)
+                        if json_rsp is not None:
+                            return json_rsp
+                except:
+                    # print('当前网络不好，正在重试，请反馈开发者!!!!')
+                    print(sys.exc_info()[0], sys.exc_info()[1], url)
+                    continue
                 
     async def other_session_post(self, url, headers=None, data=None, params=None):
         while True:
@@ -321,7 +334,7 @@ class bilibili():
         
     async def get_rooms_from_remote(self, start, end):
         url = f'http://room.lc4t.cn:8000/dyn_rooms/{start}-{end}'
-        json_rsp = await self.other_session_get(url)
+        json_rsp = await self.other_session_get(url, is_none_allowed=True)
         return json_rsp
 
 

@@ -150,9 +150,12 @@ async def enter_room(roomid):
 async def get_rooms_from_remote(start, end):
     json_rsp = await bilibili().get_rooms_from_remote(start, end)
     # print(json_rsp)
-    rooms = json_rsp['roomid']
-    print('总计获取', len(rooms))
-    print('起止指针', start, end)
+    if json_rsp is not None:
+        rooms = json_rsp['roomid']
+        print('总计获取', len(rooms))
+        print('起止指针', start, end)
+    else:
+        rooms = None
     return rooms
             
             
