@@ -25,6 +25,7 @@ class DanmuSender:
             cls.instance.__keys = '阝飠牜饣卩卪厸厶厽孓宀巛巜彳廴彡彐忄扌攵氵灬爫犭疒癶礻糹纟罒罓耂虍訁覀兦亼亽亖亗吂卝匸皕旡玊尐幵朩囘囙囜囝囟囡団囤囥囦囧囨囩囪囫囬囮囯困囱囲図囵囶囷囸囹固囻囼图囿圀圁圂圃圄圅圆圇圉圊圌圍圎圏圐圑園圓圔圕圖圗團圙圚圛圜圝圞'
             
             cls.instance.__reverse_keys = {value: i for i, value in enumerate(cls.instance.__keys)}
+            cls.is_refresh_ok = True
         return cls.instance
         
     def __dec2base(self, int_x, base=110):
@@ -42,7 +43,10 @@ class DanmuSender:
         while True:
             type, raffle_id, room_id = await self.queue_raffle.get()
             if type == -1:
-                await self.send(raffle_id)
+                if self.is_refresh_ok:
+                    await self.send(raffle_id)
+                else:
+                    await self.send(f'{raffle_id} F')
                 await asyncio.sleep(1.5)
             else:
                 if type == 0:
@@ -123,6 +127,9 @@ class DanmuSender:
         
     async def add2queue(self, *args):
         await self.queue_raffle.put(args)
+        
+    def set_refresh_ok(self, is_refresh_ok):
+        self.is_refresh_ok = is_refresh_ok
         
 
 # 在这里priority也作为一个type

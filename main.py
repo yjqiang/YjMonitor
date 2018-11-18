@@ -63,6 +63,7 @@ async def fetch_roomid_periodic():
             old_rooms = [room.roomid for room in list_raffle_connection]
             new_rooms = await utils.get_rooms_from_remote(START, END)
             if new_rooms is None:
+                danmusender.set_refresh_ok(False)
                 await asyncio.sleep(60)
                 continue
             # 只重启那些不同的
@@ -79,6 +80,7 @@ async def fetch_roomid_periodic():
             list_unique_connection = [list_raffle_connection[i] for i in list_unique_old_index]
             for connection, roomid in zip(list_unique_connection, set_unique_new_rooms):
                 await connection.reconnect(roomid)
+            danmusender.set_refresh_ok(True)
                 
             await asyncio.sleep(60)
         
