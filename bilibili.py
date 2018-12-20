@@ -322,7 +322,9 @@ class bilibili():
             'msg': msg,
             'rnd': '0',
             'roomid': int(roomId),
-            'csrf_token': inst.dic_bilibili['csrf']
+            'csrf_token': inst.dic_bilibili['csrf'],
+            'csrf': inst.dic_bilibili['csrf'],
+            
         }
 
         response = await inst.bili_section_post(url, headers=inst.dic_bilibili['pcheaders'], data=data)
