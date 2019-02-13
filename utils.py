@@ -12,6 +12,10 @@ import sys
 def CurrentTime():
     currenttime = int(time.time())
     return str(currenttime)
+    
+
+def curr_time():
+    return int(time.time())
 
         
 class DanmuSender:
