@@ -27,14 +27,3 @@ Accept-Language = "zh-CN"
 Accept = "text/html,application/xhtml+xml,*/*;q=0.8"
 Connection = "keep-alive"
 cookie = ""
-
-[account]
-username = ""
-password = ""
-
-[saved-session]
-access_key = ""
-cookie = ""
-csrf = ""
-uid = ""
-refresh_token = ""

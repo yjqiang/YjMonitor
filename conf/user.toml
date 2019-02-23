@@ -1,44 +1,8 @@
-[platform]
-platform = "others"
-
-[print_control]
-danmu = false
-debug = false
-
-[task_control]
-# 清理即将过期礼物，请true之后一定要把紧随其后的room设置为真实房间号
-clean-expiring-gift = false
-# 单位秒
-set-expiring-time = 43200
-# 对过期礼物是否先投递到其他勋章(按照勋章等级投递)，之后会剩余的清理掉roomid里面
-clean_expiring_gift2all_medal = false
-clean-expiring-gift2room = 0
-
-# 一天最多一个硬币兑换机会
-silver2coin = false
-
-# 自动投满佩戴勋章当日亲密度
-send2wearing-medal = false
-# 房间号 短房间 
-send2medal = []
-
-# 老接口高倍率兑换硬币为银瓜子，现已失效，请勿修改！！
-doublegain_coin2silver = false
-
-# 输入数字 0-5 表示主站自动投币
-givecoin = 0
-# 投币av获取(bilitop或者uper)分别代表b站随机或者根据up主mid选取
-fetchrule = "bilitop"
-# up主list([123]或者[123, 234, 123]等)
-mid = [207539637]
-
-
-[other_control]
-# 保持连接状态，下次再登陆不会重复登陆，读取存储的cookie重用，如要密码登陆，请手动清除bilibili.conf里面的cookie
-keep-login = true
-
-# 默认监听房间号
-default_monitor_roomid = 23058
-START = 0
-END = 0
-
+[[users]]
+username = ""
+password = ""
+access_key = ""
+cookie = ""
+csrf = ""
+uid = ""
+refresh_token = ""

@@ -1,21 +1,22 @@
-from statistics import Statistics
-from rafflehandler import Rafflehandler
+import bili_statistics
 import asyncio
+import notifier
 from cmd import Cmd
-    
+import getopt
+          
               
 class Biliconsole(Cmd):
     prompt = ''
-
+    
     def __init__(self, loop):
         self.loop = loop
-        Cmd.__init__(self)
-        
+        super().__init__()
+    
     def guide_of_console(self):
-        print('___________________________')
-        print('| 欢迎使用本控制台           |')
-        print('|1 输出本次抽奖统计          |')
-        print('￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣')
+        print(' ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿ ')
+        print('|　　　欢迎使用本控制台　　　　　　　|')
+        print('|　１　输出本次统计数据　　　　　　　|')
+        print(' ￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣ ')
         
     def default(self, line):
         self.guide_of_console()
@@ -23,29 +24,68 @@ class Biliconsole(Cmd):
     def emptyline(self):
         self.guide_of_console()
         
-    def do_1(self, line):
-        Statistics.getlist()
+    # pattern = '-u:-p:' u(user_id):0,1…;n(num);p(point)指roomid(烂命名因为-r不合适)
+    def parse(self, arg, pattern, default_u=0, set_roomid=False):
+        args = arg.split()
+        try:
+            opts, args = getopt.getopt(args, pattern)
+        except getopt.GetoptError:
+            return []
+        dict_results = {opt_name: opt_value for opt_name, opt_value in opts}
         
-    def do_check(self, line):
-        Rafflehandler.getlist()
-        
-    def append2list_console(self, request):
-        asyncio.run_coroutine_threadsafe(self.excute_async(request), self.loop)
-        # inst.loop.call_soon_threadsafe(inst.queue_console.put_nowait, request)
-        
-    async def excute_async(self, i):
-        if isinstance(i, list):
-            # 对10号单独简陋处理
-            for j in range(len(i[0])):
-                if isinstance(i[0][j], list):
-                    # print('检测')
-                    i[0][j] = await i[0][j][1](*(i[0][j][0]))
-            if i[1] == 'normal':
-                i[2](*i[0])
+        opt_names = pattern.split(':')[:-1]
+        results = []
+        for opt_name in opt_names:
+            opt_value = dict_results.get(opt_name)
+            if opt_name == '-u':
+                if opt_value is not None and opt_value.isdigit():
+                    results.append(int(opt_value))
+                else:
+                    results.append(default_u)
+                    # -2是一个灾难性的东西
+                    # results.append(-2)
+            elif opt_name == '-n':
+                if opt_value is not None and opt_value.isdigit():
+                    results.append(int(opt_value))
+                else:
+                    results.append(0)
             else:
-                await i[1](*i[0])
-        else:
-            await i()
+                results.append(opt_value)
+        return results
+                
+    def do_1(self, arg):
+        id, = self.parse(arg, '-u:')
+        self.exec_func_threads(bili_statistics.coroutine_print_statistics, [id])
+        
+    # threads指thread safe
+    def exec_notifier_func_threads(self, *args):
+        asyncio.run_coroutine_threadsafe(self.exec_notifier_func(*args), self.loop)
+        
+    def exec_func_threads(self, *args):
+        asyncio.run_coroutine_threadsafe(self.exec_func(*args), self.loop)
+        
+    def exec_task_threads(self, *args):
+        asyncio.run_coroutine_threadsafe(self.exec_task(*args), self.loop)
+        
+    # 这里args设置为list
+    async def exec_notifier_func(self, id, func, args):
+        for i, arg in enumerate(args):
+            if isinstance(arg, list):
+                args[i] = await notifier.exec_func(*arg)
+        await notifier.exec_func(id, func, *args)
+
+    async def exec_func(self, func, args):
+        for i, arg in enumerate(args):
+            if isinstance(arg, list):
+                args[i] = await notifier.exec_func(*arg)
+        await func(*args)
+        
+    async def exec_task(self, id, task, step, args):
+        for i, arg in enumerate(args):
+            if isinstance(arg, list):
+                args[i] = await notifier.exec_func(*arg)
+        notifier.exec_task(id, task, step, *args)
+        
     
     
     
