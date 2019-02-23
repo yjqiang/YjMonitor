@@ -1,3 +1,4 @@
+import init_eventloop
 import sys
 import signal
 import threading
@@ -44,7 +45,6 @@ START = dict_ctrl['other_control']['START']
 END = dict_ctrl['other_control']['END']
 set_checkmsg(f'{START}={END}v400')
 set_roomid(yj_danmu_roomid)
-
 
 
 async def fetch_roomid_periodic():
