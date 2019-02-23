@@ -1,4 +1,3 @@
-import bili_statistics
 from tasks.utils import UtilsTask
 
 
@@ -15,7 +14,7 @@ class CheckRaffleHandlerTask:
     @staticmethod
     async def check(user, room_id):
         next_step_settings = []
-        next_step_setting = (1, (0, 0), -3, room_id, 0)
+        next_step_setting = (1, (0, 0), -2, room_id, 0)
         next_step_settings.append(next_step_setting)
         return next_step_settings
             

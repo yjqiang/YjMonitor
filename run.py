@@ -43,7 +43,7 @@ loop.run_until_complete(notifier.exec_func(-2, LoginTask.handle_login_status))
 yj_danmu_roomid = dict_ctrl['other_control']['raffle_minitor_roomid']
 START = dict_ctrl['other_control']['START']
 END = dict_ctrl['other_control']['END']
-set_checkmsg(f'{START}={END}v400')
+set_checkmsg(f'{START}={END}v410')
 set_roomid(yj_danmu_roomid)
 
 
@@ -59,7 +59,7 @@ async def fetch_roomid_periodic():
     for i in list_raffle_connection:
         asyncio.ensure_future(i.run_forever())
 
-    asyncio.ensure_future(YjCheckMonitor(yj_danmu_roomid, -1).run_forever())
+    asyncio.ensure_future(YjCheckMonitor(yj_danmu_roomid, -1, f'check{START}-{END}').run_forever())
     while True:
         now = datetime.now()
         print(f'当前时间为 {now.hour:0>2}:{now.minute:0>2}:{now.second:0>2}')

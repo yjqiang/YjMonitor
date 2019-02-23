@@ -189,12 +189,16 @@ class BaseDanmu:
 
 
 class YjCheckMonitor(BaseDanmu):
+    def __init__(self, room_id, area_id, check_msg):
+        super().__init__(room_id, area_id)
+        self._check_msg = check_msg
+    
     def handle_danmu(self, body):
         dic = json.loads(body.decode('utf-8'))
         cmd = dic['cmd']
         if cmd == 'DANMU_MSG':
             msg = dic['info'][1]
-            if msg == 'check':
+            if msg.replace(' ', '') == self._check_msg:
                 printer.info([f'弹幕监控检测到{self._room_id:^9}的检测请求'], True)
                 raffle_handler.exec_at_once(CheckRaffleHandlerTask, self._room_id)
         return True
