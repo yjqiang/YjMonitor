@@ -43,7 +43,7 @@ loop.run_until_complete(notifier.exec_func(-2, LoginTask.handle_login_status))
 yj_danmu_roomid = dict_ctrl['other_control']['raffle_minitor_roomid']
 START = dict_ctrl['other_control']['START']
 END = dict_ctrl['other_control']['END']
-set_checkmsg(f'{START}={END}v410')
+set_checkmsg(f'{int(START/100)}阝{int(END/100)}')
 set_roomid(yj_danmu_roomid)
 
 

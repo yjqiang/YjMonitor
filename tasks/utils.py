@@ -84,7 +84,7 @@ class DanmuSender:
             elif not code and msg_rsp == '内容非法':
                 printer.info([f'非法反馈, 准备后续的处理 {msg}'], True)
                 return False
-            elif not code and msg_rsp == 'msg in 1s':
+            elif not code and (msg_rsp == 'msg in 1s' or ('repeat' in msg_rsp)):
                 printer.info(['弹幕发送频繁提示'], True)
             elif code == -500:
                 printer.warn(f'弹幕{msg}提示超出限制长度')
