@@ -1,6 +1,8 @@
-# YjMonitor
+YjMonitor
+===========
 b站 上船风暴监控  
 作者自用，更新不频繁，bug基本没有，但是更新慢，衍生自https://github.com/yjqiang/bilibili-live-tools  
+
 monitor部分
 ------------
 1. ctrl.toml 最后那里定义了发送目标房间，结果都会发到指定房间里面，默认3号房间；start end控制监控范围，房间取自正在播的房间（按照热度排序)
