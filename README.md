@@ -11,6 +11,7 @@ monitor部分
 
 ws_client部分
 -------------
+1. ws_client.py 是 websocket 解说端示例， 采用了 ping 作为心跳。
 1. req_check.py 负责监控 websocket 服务器的状态。
 1. req_create_key.py 负责让 websocket 服务器产生新的 key ，需要超管权限。
 1. req_post_raffle.py 负责向 websockets 服务器推送 raffle (仅作为示例)。
