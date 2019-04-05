@@ -2,3 +2,4 @@
 /.storm.py.icloud
 /.test.py.icloud
 *.pem
+*.db
