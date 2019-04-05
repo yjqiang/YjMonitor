@@ -1,16 +1,3 @@
-YjMonitor
-===========
-b站 上船风暴监控  
-作者自用，更新不频繁，bug基本没有，但是更新慢，衍生自https://github.com/yjqiang/bilibili-live-tools  
-
-monitor部分
-------------
-1. ctrl.toml 最后那里定义了发送目标房间，结果都会发到指定房间里面，默认3号房间；start end控制监控范围，房间取自正在播的房间（按照热度排序)
-1. 由于python性能问题，推荐（1000-1500）一个机器，需要几台机器协同一起监控，之后考虑golang（flag)
-1. 数据格式为多进制进制，房间号和raffleid间隔为特殊符号
-
-ws_client部分
--------------
 1. req_check.py 负责监控 websocket 服务器的状态。
 1. req_create_key.py 负责让 websocket 服务器产生新的 key。
 1. req_post_raffle.py 负责向 websockets 服务器推送 raffle (仅作为示例)。
