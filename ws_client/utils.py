@@ -33,7 +33,7 @@ def make_signature(name: str, privkey: rsa.PrivateKey, need_name=True) -> dict:
     }
 
 
-def request_json(method, url, timeout=3, **kwargs):    
+def request_json(method, url, timeout=3, **kwargs):
     while True:
         try:
             with requests.request(method, url, timeout=timeout, **kwargs) as rsp:
