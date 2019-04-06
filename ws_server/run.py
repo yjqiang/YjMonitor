@@ -5,6 +5,7 @@ import asyncio
 import random
 import hashlib
 import string
+import struct
 from os import path
 from time import time
 from typing import Dict
@@ -19,7 +20,8 @@ import utils
 from printer import info
 import json_req_exceptions
 import ws_req_exceptions
-from receiver import Receiver, BroadCaster
+import tcp_req_exception
+from receiver import WsReceiverConn, TcpReceiverConn, Receiver, BroadCaster
 from poster import PostOffice
 
 
@@ -119,30 +121,57 @@ class BroadCastHandler:
         raise json_req_exceptions.DataError
 
     async def _verify_ws_req(self, rsp: web.WebSocketResponse, request) -> Receiver:
+        conn = None
         try:
-            await rsp.prepare(request)
-            data = await rsp.receive()
-            if data.type == WSMsgType.TEXT:  # 这段是ws的开头，需要验证key
-                json_data = json.loads(data.data)
+            await rsp.prepare(request)  # 完成交接之后可以conn正式有效
+            conn = WsReceiverConn(rsp)
+            json_data = await conn.recv_json()
+            if json_data is not None:  # 这段是ws的开头，需要验证key
                 orig_key = json_data['data']['key']
                 key = sql.is_key_verified(orig_key)
                 if key is not None:
                     if self._broadcaster.can_pass_max_users_test(key.key_index, key.key_max_users):
-                        user = Receiver(user_rsp=rsp, user_key_index=key.key_index)
+                        user = Receiver(user_conn=conn, user_key_index=key.key_index)
                         return user
                     else:
                         info(f'KEY({key.key_index[:5]}***...)用户过多')
-                        raise ws_req_exceptions.MaxError()
+                        raise ws_req_exceptions.MaxError(conn)
                 else:
                     info('有人恶意尝试KEY')
-                    raise ws_req_exceptions.VerificationError()
+                    raise ws_req_exceptions.VerificationError(conn)
             else:
-                raise ws_req_exceptions.DataError()
+                raise ws_req_exceptions.DataError(conn)
 
         except ws_req_exceptions.WsReqError:
             raise
         except:
-            raise ws_req_exceptions.OtherError()
+            raise ws_req_exceptions.OtherError(conn)
+
+    async def _verify_tcp_req(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> Receiver:
+        conn = TcpReceiverConn(writer=writer, reader=reader)
+        try:
+            json_data = await conn.recv_json()
+            print('test0', json_data)
+            if json_data is not None:
+                orig_key = json_data['data']['key']
+                key = sql.is_key_verified(orig_key)
+                if key is not None:
+                    if self._broadcaster.can_pass_max_users_test(key.key_index, key.key_max_users):
+                        user = Receiver(user_conn=conn, user_key_index=key.key_index)
+                        return user
+                    else:
+                        info(f'KEY({key.key_index[:5]}***...)用户过多')
+                        raise tcp_req_exception.MaxError(conn)
+                else:
+                    info('有人恶意尝试KEY')
+                    raise tcp_req_exception.VerificationError(conn)
+            else:
+                raise tcp_req_exception.DataError(conn)
+
+        except tcp_req_exception.TcpReqError:
+            raise
+        except:
+            raise tcp_req_exception.OtherError(conn)
 
     # 普通管理员权限
     async def check_handler(self, request):
@@ -213,25 +242,22 @@ class BroadCastHandler:
         try:
             user = await self._verify_ws_req(resp, request)
         except ws_req_exceptions.WsReqError as e:
-            try:
-                await resp.send_json(e.RSP_SUGGESTED)
-                await resp.close()
-            except:
-                pass
+            if e.conn is not None:
+                await e.conn.send_json(e.RSP_SUGGESTED)
+                await e.conn.close()
             return resp
 
         self._broadcaster.append(user)
         info(f'IP({ip:^15})用户{user.user_key_index[:5]}加入')
 
         try:
-            await resp.send_json({'code': 0, 'type': 'entered', 'data': {}})
+            if not await user.user_conn.send_json({'code': 0, 'type': 'entered', 'data': {}}):
+                return resp
             while True:
-                msg = await resp.receive()
-                if msg.type == WSMsgType.TEXT:
-                    info(json.loads(msg.data))
-                else:
-                    info('接受到ws数据', user, msg)
+                dict_data = await user.user_conn.recv_json()
+                if dict_data is None:
                     return resp
+                info(dict_data)
         except asyncio.CancelledError:
             # aiohttp正常逻辑（反正就会中断。。。）
             return resp
@@ -242,7 +268,40 @@ class BroadCastHandler:
             self._broadcaster.remove(user)
             info(f'用户{user.user_key_index[:5]}删除')
             # https://aiohttp.readthedocs.io/en/stable/web_advanced.html#web-handler-cancellation
-            await asyncio.shield(resp.close())
+            await asyncio.shield(user.user_conn.close())
+
+    async def tcp_receiver_handle(self, reader, writer):
+        addr, _ = writer.get_extra_info('peername')
+        print(f'Received from {addr}')
+
+        try:
+            user = await self._verify_tcp_req(writer=writer, reader=reader)
+        except tcp_req_exception.TcpReqError as e:
+            if e.conn is not None:
+                await e.conn.send_json(e.RSP_SUGGESTED)
+                await e.conn.close()
+            return
+
+        self._broadcaster.append(user)
+        info(f'IP({addr:^15})用户{user.user_key_index[:5]}加入')
+
+        try:
+            if not await user.user_conn.send_json({'code': 0, 'type': 'entered', 'data': {}}):
+                return
+            while True:
+                dict_data = await user.user_conn.recv_json()
+                if dict_data is None:
+                    return
+                info(dict_data)
+        except asyncio.CancelledError:
+            return
+        except:
+            info(sys.exc_info()[0], sys.exc_info()[1])
+            return
+        finally:
+            self._broadcaster.remove(user)
+            info(f'用户{user.user_key_index[:5]}删除')
+            await asyncio.shield(user.user_conn.close())
 
 
 def main():
@@ -255,6 +314,10 @@ def main():
     broadcast_handler = BroadCastHandler(
         super_admin_pubkey=super_admin_pubkey,
         admin_pubkey=admin_pubkey)
+
+    loop = asyncio.get_event_loop()
+    coro = asyncio.start_server(broadcast_handler.tcp_receiver_handle, '0.0.0.0', 8002, loop=loop)
+    server = loop.run_until_complete(coro)
 
     app = web.Application()
     app.router.add_route('GET', '/ws_test', broadcast_handler.ws_test_handle)
