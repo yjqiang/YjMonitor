@@ -21,4 +21,4 @@ class CheckRaffleHandlerTask:
     @staticmethod
     async def send(user, room_id, raffle_id):
         raffle_type = -1
-        await UtilsTask.send_danmu(user, room_id, raffle_id, raffle_type)
+        await UtilsTask.send2danmu(user, room_id, raffle_id, raffle_type)

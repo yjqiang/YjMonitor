@@ -1,4 +1,5 @@
 import toml
+import rsa
 
 
 # "#969696"
@@ -17,6 +18,7 @@ class ConfLoader():
         self.file_user = f'{root_path}/conf/user.toml'
         self.file_bili = f'{root_path}/conf/bili.toml'
         self.file_ctrl = f'{root_path}/conf/ctrl.toml'
+        self.key_path = f'{root_path}/key/admin_privkey.pem'
         
         '''
         self.dict_color = self.read_color()
@@ -65,6 +67,11 @@ class ConfLoader():
             dict_ctrl = toml.load(f)
         return dict_ctrl
         
+    def read_key(self):
+        with open(self.key_path, 'rb') as f:
+            admin_privkey = rsa.PrivateKey.load_pkcs1(f.read())
+        return admin_privkey
+        
                 
 var = ConfLoader()
 
@@ -91,4 +98,8 @@ def read_user():
         
 def read_ctrl():
     return var.read_ctrl()
+
+
+def read_key():
+    return var.read_key()
 

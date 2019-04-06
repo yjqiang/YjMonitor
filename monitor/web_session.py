@@ -46,6 +46,7 @@ class WebSession:
                            headers=None,
                            data=None,
                            params=None,
+                           json=None,
                            is_none_allowed=False,
                            is_login=False):
         async with sem:
@@ -57,7 +58,7 @@ class WebSession:
                     if is_none_allowed:
                         return None
                 try:
-                    async with self.var_session.request(method, url, headers=headers, data=data, params=params) as rsp:
+                    async with self.var_session.request(method, url, headers=headers, data=data, params=params, json=json) as rsp:
                         if rsp.status == 200:
                             json_body = await self.__get_json_body(
                                 rsp, is_login)

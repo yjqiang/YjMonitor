@@ -1,7 +1,9 @@
 import asyncio
 import re
 import random
+
 import printer
+import utils
 from reqs.utils import UtilsReq
 
 
@@ -19,9 +21,13 @@ class UtilsTask:
         return rooms
 
     @staticmethod
-    async def send_danmu(user, room_id, raffle_id, raffle_type):
+    async def send2danmu(user, room_id, raffle_id, raffle_type):
         async with user._send_danmu_lock:
             await send_raffle2room(user, room_id, raffle_id, raffle_type)
+            
+    @staticmethod
+    async def send2yj_monitor(user, room_id, raffle_id, raffle_type):
+        await send2yj_monitor(user, room_id, raffle_id, raffle_type)
 
 
 class DanmuSender:
@@ -136,9 +142,36 @@ class DanmuSender:
 
     def set_refresh_ok(self, is_refresh_ok):
         self.is_refresh_ok = is_refresh_ok
-
-
+        
+        
+class YjMonitorPoster:
+    def set_values(self, key, url, name):
+        self.privkey = key
+        self.url = url
+        self.name = name
+        
+    async def send2yj_monitor(self, user, room_id, raffle_id, raffle_type):
+        dict_signature = utils.make_signature(
+            self.name,
+            self.privkey,
+            need_name=True)
+        data = {
+            'code': 0,
+            'type': 'raffle',
+            'data': {
+                'raffle_id': raffle_id,
+                'room_id': room_id,
+                'raffle_type': raffle_type
+            },
+            'verification': dict_signature
+            }
+        json_rsp = await user.req_s(UtilsReq.send2yj_monitor, user, self.url, data)
+        
+        user.info([f'已推送{raffle_id},结果反馈为: {json_rsp}'], True)
+    
+    
 danmu_sender = DanmuSender()
+yjmonitor_poster = YjMonitorPoster()
 
 
 async def send_raffle2room(user, room_id, raffle_id, raffle_type):
@@ -156,4 +189,11 @@ def set_checkmsg(msg):
 def set_roomid(room_id):
     danmu_sender.room_id = room_id
 
-# i这里有致命错误！！！！！！！！！1多个用户同时发，i不安全
+
+def set_values(key, url, name):
+    yjmonitor_poster.set_values(key=key, url=url, name=name)
+ 
+       
+async def send2yj_monitor(user, room_id, raffle_id, raffle_type):
+    await yjmonitor_poster.send2yj_monitor(user, room_id, raffle_id, raffle_type)
+    

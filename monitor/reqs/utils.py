@@ -35,3 +35,8 @@ class UtilsReq:
         }
         json_rsp = await user.bililive_session.request_json('POST', url, headers=user.dict_bili['pcheaders'], data=data)
         return json_rsp
+        
+    async def send2yj_monitor(user, url, data):
+        json_rsp = await user.other_session.request_json('POST', url, json=data)
+        return json_rsp
+        

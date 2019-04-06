@@ -14,7 +14,7 @@ from bili_console import Biliconsole
 import printer
 from user import User
 from tasks.login import LoginTask
-from tasks.utils import UtilsTask, set_refresh_ok, set_checkmsg, set_roomid
+from tasks.utils import UtilsTask, set_refresh_ok, set_checkmsg, set_roomid, set_values
 
 root_path = path.dirname(path.realpath(__file__))
 conf_loader.set_path(root_path)
@@ -25,6 +25,7 @@ dict_user = conf_loader.read_user()
 dict_bili = conf_loader.read_bili()
 dict_color = conf_loader.read_color()
 dict_ctrl = conf_loader.read_ctrl()
+admin_privkey = conf_loader.read_key()
 printer.init_config(dict_color, dict_ctrl['print_control']['danmu'])
 area_ids = dict_ctrl['other_control']['area_ids']
 
@@ -43,8 +44,12 @@ loop.run_until_complete(notifier.exec_func(-2, LoginTask.handle_login_status))
 yj_danmu_roomid = dict_ctrl['other_control']['raffle_minitor_roomid']
 START = dict_ctrl['other_control']['START']
 END = dict_ctrl['other_control']['END']
-set_checkmsg(f'{int(START/100)}阝{int(END/100)}')
+set_checkmsg(f'{int(START/100)}阝阝{int(END/100)}')
 set_roomid(yj_danmu_roomid)
+set_values(
+    key=admin_privkey,
+    name=f'{START}-{END}',
+    url=dict_ctrl['other_control']['post_office'])
 
 
 async def fetch_roomid_periodic():
@@ -59,7 +64,8 @@ async def fetch_roomid_periodic():
     for i in list_raffle_connection:
         asyncio.ensure_future(i.run_forever())
 
-    asyncio.ensure_future(YjCheckMonitor(yj_danmu_roomid, -1, f'check{START}-{END}').run_forever())
+    if yj_danmu_roomid:
+        asyncio.ensure_future(YjCheckMonitor(yj_danmu_roomid, -1, f'check{START}-{END}').run_forever())
     while True:
         now = datetime.now()
         print(f'当前时间为 {now.hour:0>2}:{now.minute:0>2}:{now.second:0>2}')

@@ -29,6 +29,7 @@ mid = [ 207539637,]
 [other_control]
 # 额外自定义弹幕监控房间(比如yj协同大航海等自定义，0会不启动)
 raffle_minitor_roomid = 0
+post_office = 'http://192.168.0.107:8001/post_raffle'
 # 固定的直播分区设置
 area_ids = [ 1, 2, 3, 4, 5, 6,]
 START = 0

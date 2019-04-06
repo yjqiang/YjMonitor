@@ -8,13 +8,15 @@ class GuardRaffleHandlerTask:
     @staticmethod
     def target(step):
         if step == 0:
-            return GuardRaffleHandlerTask.check
+            return GuardRaffleHandlerTask.check_v1
         if step == 1:
-            return GuardRaffleHandlerTask.send
+            return GuardRaffleHandlerTask.send2danmu
+        if step == 2:
+            return GuardRaffleHandlerTask.send2yj_monitor
         return None
         
     @staticmethod
-    async def check(user, real_roomid):
+    async def check_v1(user, real_roomid):
         for i in range(10):
             json_rsp = await user.req_s(GuardRaffleHandlerReq.check, user, real_roomid)
             # print(json_rsp)
@@ -40,6 +42,34 @@ class GuardRaffleHandlerTask:
         return next_step_settings
         
     @staticmethod
-    async def send(user, room_id, raffle_id):
+    async def send2danmu(user, room_id, raffle_id):
         raffle_type = 1
-        await UtilsTask.send_danmu(user, room_id, raffle_id, raffle_type)
+        await UtilsTask.send2danmu(user, room_id, raffle_id, raffle_type)
+                
+    @staticmethod
+    async def check_v2(user, real_roomid):
+        for i in range(10):
+            json_rsp = await user.req_s(GuardRaffleHandlerReq.check, user, real_roomid)
+            # print(json_rsp)
+            if json_rsp['data']:
+                break
+            await asyncio.sleep(1)
+        else:
+            print(f'{real_roomid}没有guard或者guard已经领取')
+            return
+        next_step_settings = []
+        data = json_rsp['data']
+        max_raffleid = max([int(i['id']) for i in data])
+        for j in json_rsp['data']:
+            raffle_id = int(j['id'])
+            if not bili_statistics.is_raffleid_duplicate(raffle_id) and raffle_id > max_raffleid - 25:
+                print('本次获取到的抽奖id为', raffle_id)
+                next_step_setting = (2, (0, 0), 0, real_roomid, raffle_id, 'GUARD')
+                next_step_settings.append(next_step_setting)
+                bili_statistics.add2raffle_ids(raffle_id)
+        return next_step_settings
+        
+    @staticmethod
+    async def send2yj_monitor(user, room_id, raffle_id, raffle_type):
+        await UtilsTask.send2yj_monitor(user, room_id, raffle_id, raffle_type)
+
