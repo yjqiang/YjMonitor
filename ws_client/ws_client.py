@@ -79,6 +79,7 @@ class YjMonitorConn:
             elif data_type == 'error':
                 print(f'发生致命错误{json_data}')
                 await asyncio.sleep(3)
+                return
 
     @staticmethod
     def handle_danmu(body):
