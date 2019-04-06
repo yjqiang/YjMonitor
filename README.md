@@ -5,9 +5,9 @@ b站 上船风暴监控
 
 monitor部分
 ------------
-1. ctrl.toml 最后那里定义了发送目标房间，结果都会发到指定房间里面，默认3号房间；start end控制监控范围，房间取自正在播的房间（按照热度排序)
+1. ctrl.toml 最后那里定义了发送目标房间，结果都会发到指定房间里面；start end控制监控范围
 1. 由于python性能问题，推荐（1000-1500）一个机器，需要几台机器协同一起监控，之后考虑golang（flag)
-1. 数据格式为多进制进制，房间号和raffleid间隔为特殊符号
+1. 如果使用ws_server作为中转，[guard](https://github.com/yjqiang/YjMonitor/blob/master/monitor/tasks/guard_raffle_handler.py#L11)和[storm](https://github.com/yjqiang/YjMonitor/blob/master/monitor/tasks/storm_raffle_handler.py#L9)需要均把`check_v1`改成`check_v2`，同时设置ctrl.toml里面的url为有效值；默认使用b站服务器作为中转点，需要ctrl.toml里面目标房间有效
 
 ws_client部分
 -------------
