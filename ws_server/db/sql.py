@@ -7,6 +7,8 @@ import attr
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
+import utils
+
 
 conn = sqlite3.connect(f'{path.dirname(path.realpath(__file__))}/data.db')
 password_hasher = PasswordHasher()
@@ -18,13 +20,15 @@ class Key:
     key_value = attr.ib(converter=str)  # 真正的key（password）经过argon2处理后的数据
     key_created_time = attr.ib(converter=int)
     key_max_users = attr.ib(default=3, convert=int)
+    key_expired_time = attr.ib(default=0, convert=int)
 
     def as_sql_values(self):
         key_index = str(self.key_index)
         key_value = str(self.key_value)
         key_created_time = int(self.key_created_time)
         key_max_users = str(self.key_max_users)
-        return key_index, key_value, key_created_time, key_max_users
+        key_expired_time = int(self.key_expired_time)
+        return key_index, key_value, key_created_time, key_max_users, key_expired_time
 
 
 class KeysTable:
@@ -35,6 +39,7 @@ class KeysTable:
             'key_value TEXT NOT NULL UNIQUE,'
             'key_created_time INTEGER NOT NULL,'
             'key_max_users TEXT NOT NULL,'
+            'key_expired_time INTEGER NOT NULL,'
             'PRIMARY KEY (key_index)'
             '); '
         )
@@ -47,7 +52,7 @@ class KeysTable:
 
     def insert_element(self, key: Key):
         with self.conn:
-            self.conn.execute('INSERT INTO keys VALUES (?, ?, ?, ?)',
+            self.conn.execute('INSERT INTO keys VALUES (?, ?, ?, ?, ?)',
                               key.as_sql_values())
 
     def select_all(self):
@@ -95,3 +100,9 @@ def is_key_addable(key_index: str, key_value: str):  # md5不同，orig_key肯�
     cursor = conn.execute(
         'SELECT 1 FROM keys WHERE key_index = ? OR key_value= ? ', (key_index, key_value))
     return not bool(cursor.fetchone())
+
+
+def select_and_check():
+    with conn:
+        conn.execute('DELETE FROM keys WHERE key_expired_time<? and key_expired_time!=0', (utils.curr_time(),))
+    return keys_table.select_all()

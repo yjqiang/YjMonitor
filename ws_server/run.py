@@ -53,7 +53,7 @@ class BroadCastHandler:
         self._conn_list[ip] = curr_time
         return True
 
-    def _create_key(self, max_users: int = 3) -> str:
+    def _create_key(self, max_users: int = 3, available_days: int = 30) -> str:
         while True:
             orig_key = ''.join(random.choices(self._key_seed, k=16))  # 100^16 别想着暴力了，各位
             encrypted_key = base64.b64encode(
@@ -62,11 +62,14 @@ class BroadCastHandler:
             hashed_key: str = self._ph.hash(orig_key)
             md5ed_key: str = hashlib.md5(orig_key.encode('utf-8')).hexdigest()
             if sql.is_key_addable(key_index=md5ed_key, key_value=hashed_key):
+                curr_time = utils.curr_time()
+                expired_time = 0 if not available_days else curr_time + available_days*3600*24
                 sql.insert_element(sql.Key(
                     key_index=md5ed_key,
                     key_value=hashed_key,
-                    key_created_time=utils.curr_time(),
-                    key_max_users=max_users)
+                    key_created_time=curr_time,
+                    key_max_users=max_users,
+                    key_expired_time=expired_time)
                 )
                 info(f'创建了一个新的KEY(MAX人数{max_users:^5}): {orig_key}')
                 return encrypted_key
@@ -184,6 +187,7 @@ class BroadCastHandler:
                     'observers_num': f'当前用户共{self._broadcaster.num_observers()}',
                     'observers_count': self._broadcaster.count(),
                     'posters_count': self._post_office.count(),
+                    'curr_db': [[key.key_index[:5], f'{key.key_created_time}->{key.key_expired_time}'] for key in sql.select_and_check()],
                     'curr_time': utils.curr_time(),
                     'encrypted_msg2admin': [],  # 管理员信息需要私钥解密
                     'encrypted_msg2super_admin': []  # 超管信息需要超管私钥解密
@@ -197,11 +201,12 @@ class BroadCastHandler:
         try:
             _, data = await self._verify_json_req(request, self._super_admin_pubkey)
             max_users = data.get('max_users', 3)
+            available_days = data.get('available_days', 30)
             if not isinstance(max_users, int):
                 raise json_req_exceptions.DataError()
             return web.json_response({'code': 0,
                                       'type': '',
-                                      'data': {'encrypted_key': self._create_key(max_users)}})
+                                      'data': {'encrypted_key': self._create_key(max_users, available_days)}})
         except json_req_exceptions.JsonReqError as e:
             return web.json_response(e.RSP_SUGGESTED)
 
