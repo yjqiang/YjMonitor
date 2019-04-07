@@ -43,7 +43,7 @@ class BroadCastHandler:
         curr_time = int(time())
         if ip in self._conn_list:
             latest_time = self._conn_list[ip]
-            if -2 <= curr_time - latest_time <= 2:
+            if -1 <= curr_time - latest_time <= 1:
                 return False
             self._conn_list[ip] = curr_time
             return True
