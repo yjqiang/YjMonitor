@@ -145,7 +145,8 @@ class YjMonitorConn:
             if not task_heartbeat.done():
                 task_heartbeat.cancel()
             await self._close_conn()
-            await asyncio.wait(pending)
+            if pending:
+                await asyncio.wait(pending)
             print('弹幕姬退出，剩余任务处理完毕')
         self._waiting.set_result(True)
             
