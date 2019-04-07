@@ -5,13 +5,12 @@ import asyncio
 import random
 import hashlib
 import string
-import struct
 from os import path
 from time import time
 from typing import Dict
 
 import rsa
-from aiohttp import web, WSMsgType
+from aiohttp import web
 
 from argon2 import PasswordHasher
 
@@ -185,7 +184,7 @@ class BroadCastHandler:
                 'type': 'server_status',
                 'data': {
                     'observers_num': f'当前用户共{self._broadcaster.num_observers()}',
-                    'observers_count': self._broadcaster.count(),
+                    # 'observers_count': self._broadcaster.count(),
                     'posters_count': self._post_office.count(),
                     'curr_db': [[key.key_index[:5], f'{key.key_created_time}->{key.key_expired_time}'] for key in sql.select_and_check()],
                     'curr_time': utils.curr_time(),
@@ -235,7 +234,7 @@ class BroadCastHandler:
         if isinstance(ip, str) and not self._can_pass_ip_test(ip):
             info(f'拒绝来自{ip}的连接请求')
             try:
-                await asyncio.sleep(3)
+                await asyncio.sleep(1.5)
             except asyncio.CancelledError:
                 pass
             return web.Response(status=403, body='403', content_type='application/json')
@@ -277,7 +276,16 @@ class BroadCastHandler:
 
     async def tcp_receiver_handle(self, reader, writer):
         addr, _ = writer.get_extra_info('peername')
-        print(f'Received from {addr}')
+        info(f'Received from {addr}')
+        
+        if isinstance(addr, str) and not self._can_pass_ip_test(addr):
+            info(f'拒绝来自{addr}的连接请求')
+            try:
+                await asyncio.sleep(1.5)
+            except asyncio.CancelledError:
+                pass
+            return
+                
         async with self._lock_open_conn:
             try:
                 user = await self._verify_tcp_req(writer=writer, reader=reader)
@@ -325,11 +333,11 @@ def main():
     server = loop.run_until_complete(coro)
 
     app = web.Application()
-    app.router.add_route('GET', '/ws_test', broadcast_handler.ws_test_handle)
+    # app.router.add_route('GET', '/ws_test', broadcast_handler.ws_test_handle)
     app.router.add_route('GET', '/check', broadcast_handler.check_handler)
     app.router.add_route('GET', '/create_key', broadcast_handler.create_key_handler)
     app.router.add_route('POST', '/post_raffle', broadcast_handler.post_raffle_handler)
-    app.router.add_route('GET', '/ws', broadcast_handler.ws_receiver_handler)
+    # app.router.add_route('GET', '/ws', broadcast_handler.ws_receiver_handler)
     app.on_shutdown.append(broadcast_handler.on_shutdown)
     web.run_app(app, port=8001)
 
