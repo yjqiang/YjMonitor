@@ -8,6 +8,7 @@ import global_var
 
 max_users = 1  # 此key最大同时在线用户数量
 name = 'super_admin'
+available_days = 0
 
 with open(f'{global_var.KEY_PATH}/super_admin_privkey.pem', 'rb') as f:
     super_admin_privkey = rsa.PrivateKey.load_pkcs1(f.read())
@@ -20,7 +21,10 @@ dict_signature = utils.make_signature(
 data = {
     'code': 0,
     'type': 'create_key',
-    'data': {'max_users': max_users},
+    'data': {
+        'max_users': max_users,
+        'available_days': available_days
+        },
     'verification': dict_signature
     }
 
