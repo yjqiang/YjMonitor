@@ -25,3 +25,7 @@ ws_server部分
 1. run.py 负责运行。
 1. db 负责存储与验证 websocket 或者 tcp 的链接 key 。key 在服务器端产生，保存特殊 hash 用于验证客户端的 ws 连接请求，同时真正的 key 加密之后返回到发出该请求(req_post_raffle.py)的客户端。
 1. key 文件夹里面***只存贮公钥***以验证身份等。其中 super_admin_pubkey.pem 是超管， admin_pubkey.pem 是普通管理员。
+
+key
+-----------
+1. client、server、monitor部分(就是👆那几个部分)都需要 key (这里的 key 指 rsa 的 key)，key 存在***各自***的key文件里面，运行需要两对 key，分别是 super_admin_privkey.pem 与 super_admin_pubkey.pem 、 admin_privkey.pem 与 admin_pubkey.pem 。monitor 部分需要 admin_privkey.pem 用来推送，client 部分需要 super_admin_privkey.pem 和 admin_privkey.pem 用来控制等，server 需要 super_admin_pubkey.pem 和 admin_pubkey.pem 来验证等。
