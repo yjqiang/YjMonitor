@@ -7,7 +7,7 @@ monitor部分
 ------------
 1. ctrl.toml 最后那里定义了发送目标房间，结果都会发到指定房间里面；start end控制监控范围。
 1. 由于python性能问题，推荐（1000-1500）一个机器，需要几台机器协同一起监控，之后考虑golang（flag)。
-1. 如果使用ws_server作为中转，[guard](https://github.com/yjqiang/YjMonitor/blob/master/monitor/tasks/guard_raffle_handler.py#L11)和[storm](https://github.com/yjqiang/YjMonitor/blob/master/monitor/tasks/storm_raffle_handler.py#L9)需要均把`check_v1`改成`check_v2`，同时设置ctrl.toml里面的url为有效值, key 文件夹内只需要 admin_privkey.pem 即可；默认使用b站服务器作为中转点，需要ctrl.toml里面目标房间有效。**目前无论是否需要ws_server作为服务器，都需要一个有效 admin_privkey.pem 作为填充。**
+1. 如果使用ws_server作为中转，[guard](https://github.com/yjqiang/YjMonitor/blob/master/monitor/tasks/guard_raffle_handler.py#L11)和[storm](https://github.com/yjqiang/YjMonitor/blob/master/monitor/tasks/storm_raffle_handler.py#L9)需要均把`check_v1`改成`check_v2`，同时设置ctrl.toml里面的url为有效值, key 文件夹内只需要 admin_privkey.pem 即可；默认使用b站服务器作为中转点，需要ctrl.toml里面目标房间有效。***目前无论是否需要ws_server作为服务器，都需要一个有效 admin_privkey.pem 作为填充。***
 
 
 ws_client部分
@@ -24,4 +24,4 @@ ws_server部分
 -------------
 1. run.py 负责运行。
 1. db 负责存储与验证 websocket 或者 tcp 的链接 key 。key 在服务器端产生，保存特殊 hash 用于验证客户端的 ws 连接请求，同时真正的 key 加密之后返回到发出该请求(req_post_raffle.py)的客户端。
-1. key 文件夹里面**只**存贮**公钥**以验证身份等。其中 super_admin_pubkey.pem 是超管， admin_pubkey.pem 是普通管理员。
+1. key 文件夹里面***只***存贮***公钥***以验证身份等。其中 super_admin_pubkey.pem 是超管， admin_pubkey.pem 是普通管理员。
