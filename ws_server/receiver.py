@@ -77,12 +77,10 @@ class TcpReceiverConn(ReceiverConn):
     async def recv_json(self) -> Optional[dict]:
         try:
             while True:
-                bytes_data = await asyncio.wait_for(self._reader.readexactly(4), timeout=25)
-                print('header', bytes_data)
+                bytes_data = await asyncio.wait_for(self._reader.readexactly(4), timeout=40)
                 len_body, = struct.unpack('!I', bytes_data)
-                print('header:', len_body)
                 if len_body:
-                    body = await asyncio.wait_for(self._reader.readexactly(len_body), timeout=25)
+                    body = await asyncio.wait_for(self._reader.readexactly(len_body), timeout=40)
                     json_body = json.loads(body.decode('utf8'))
                     return json_body
                 else:

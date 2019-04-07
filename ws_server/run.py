@@ -34,6 +34,7 @@ class BroadCastHandler:
         self._key_seed = f'{string.digits}{string.ascii_letters}!#$%&()*+,-./:;<=>?@[]^_`|~'  # 89个字符，抛弃了一些特殊字符
         self._ph = PasswordHasher()
         self._conn_list: Dict[str, int] = {}
+        self._lock_open_conn = asyncio.Semaphore(2)
 
     @staticmethod
     async def ws_test_handle(_):
@@ -151,7 +152,6 @@ class BroadCastHandler:
         conn = TcpReceiverConn(writer=writer, reader=reader)
         try:
             json_data = await conn.recv_json()
-            print('test0', json_data)
             if json_data is not None:
                 orig_key = json_data['data']['key']
                 key = sql.is_key_verified(orig_key)
@@ -273,14 +273,14 @@ class BroadCastHandler:
     async def tcp_receiver_handle(self, reader, writer):
         addr, _ = writer.get_extra_info('peername')
         print(f'Received from {addr}')
-
-        try:
-            user = await self._verify_tcp_req(writer=writer, reader=reader)
-        except tcp_req_exception.TcpReqError as e:
-            if e.conn is not None:
-                await e.conn.send_json(e.RSP_SUGGESTED)
-                await e.conn.close()
-            return
+        async with self._lock_open_conn:
+            try:
+                user = await self._verify_tcp_req(writer=writer, reader=reader)
+            except tcp_req_exception.TcpReqError as e:
+                if e.conn is not None:
+                    await e.conn.send_json(e.RSP_SUGGESTED)
+                    await e.conn.close()
+                return
 
         self._broadcaster.append(user)
         info(f'IP({addr:^15})用户{user.user_key_index[:5]}加入')

@@ -43,7 +43,7 @@ class YjMonitorConn:
             return b''
         try:
             bytes_data = await asyncio.wait_for(
-                self._reader.readexactly(n), timeout=25)
+                self._reader.readexactly(n), timeout=40)
         except asyncio.TimeoutError:
             print('# 由于心跳包30s一次，但是发现35内没有收到任何包，说明已经悄悄失联了，主动断开')
             return None
@@ -58,7 +58,7 @@ class YjMonitorConn:
             url = '192.168.0.107'
             port = 8002
             self._reader, self._writer = await asyncio.wait_for(
-                asyncio.open_connection(url, port), timeout=3)
+                asyncio.open_connection(url, port), timeout=10)
         except asyncio.TimeoutError:
             print('连接超时')
             return False
@@ -88,7 +88,7 @@ class YjMonitorConn:
             while True:
                 if not await self._send_bytes(self._bytes_heartbeat):
                     return
-                await asyncio.sleep(20)
+                await asyncio.sleep(30)
         except asyncio.CancelledError:
             return
             
