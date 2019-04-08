@@ -239,7 +239,7 @@ class BroadCastHandler:
                 pass
             return web.Response(status=403, body='403', content_type='application/json')
 
-        resp = web.WebSocketResponse(heartbeat=20, receive_timeout=25)
+        resp = web.WebSocketResponse(heartbeat=30, receive_timeout=40)
         if not resp.can_prepare(request):
             return resp
 
@@ -282,6 +282,7 @@ class BroadCastHandler:
             info(f'拒绝来自{addr}的连接请求')
             try:
                 await asyncio.sleep(1.5)
+                writer.close()
             except asyncio.CancelledError:
                 pass
             return

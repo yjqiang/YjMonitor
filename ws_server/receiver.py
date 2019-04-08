@@ -44,8 +44,8 @@ class WsReceiverConn(ReceiverConn):
             msg = await self._conn.receive()
             if msg.type == WSMsgType.TEXT:
                 return json.loads(msg.data)
-            else:
-                return None
+            elif msg.type == WSMsgType.BINARY:
+                return json.loads(msg.data.decode('utf8'))
         except:
             return None
 
