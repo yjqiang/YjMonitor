@@ -101,7 +101,7 @@ class BroadCastHandler:
                 try:
                     cur_time0 = int(verification['time'])
                     cur_time1 = utils.curr_time()
-                    if -10 <= cur_time0 - cur_time1 <= 10:
+                    if -600 <= cur_time0 - cur_time1 <= 600:
                         # 缺省name表示为super_admin，需要使用超管签名校验，其他的用管理员校验
                         name = verification.get("name", "super_admin")
                         text = f'Hello World. This is {name} at {cur_time0}.'.encode('utf-8')
