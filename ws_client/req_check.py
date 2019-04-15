@@ -1,10 +1,13 @@
+"""用于检查服务器状态，比如有多少人在监听服务器、推送者有哪些等等
+"""
+
 import rsa
 
 import utils
 import global_var
 
 
-name = 'bbbn'
+name = 'bbbn'  # 用户名没必要改
 
 with open(f'{global_var.KEY_PATH}/admin_privkey.pem', 'rb') as f:
     admin_privkey = rsa.PrivateKey.load_pkcs1(f.read())

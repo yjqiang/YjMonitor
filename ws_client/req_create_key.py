@@ -1,3 +1,6 @@
+"""控制服务器生成新的用于推送客户端的key，使用该key可以建立连接获得推送数据
+"""
+
 import base64
 
 import rsa
@@ -6,9 +9,9 @@ import utils
 import global_var
 
 
-max_users = 1  # 此key最大同时在线用户数量
-name = 'super_admin'
-available_days = 0
+max_users = 1  # 此key最大允许的同时在线用户数量
+name = 'super_admin'  # 用户名没必要改
+available_days = 0  # 控制这个key有效的天数，0表示永久有效
 
 with open(f'{global_var.KEY_PATH}/super_admin_privkey.pem', 'rb') as f:
     super_admin_privkey = rsa.PrivateKey.load_pkcs1(f.read())

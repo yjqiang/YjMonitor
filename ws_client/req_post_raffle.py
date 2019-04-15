@@ -1,3 +1,6 @@
+"""推送抽奖的示例代码
+"""
+
 import rsa
 
 import utils
@@ -5,7 +8,7 @@ import global_var
 
 
 name = 'bbbn'  # 名字用于统计是否poster还在线
-data = {'room_id': 0, 'raffle_id': 133, 'raffle_type': 'storm'}
+data = {'room_id': 0, 'raffle_id': 133, 'raffle_type': 'storm'}  # 推送的数据
 
 with open(f'{global_var.KEY_PATH}/admin_privkey.pem', 'rb') as f:
     admin_privkey = rsa.PrivateKey.load_pkcs1(f.read())

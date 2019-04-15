@@ -1,3 +1,6 @@
+"""客户端示例
+"""
+
 import asyncio
 import sys
 import aiohttp
