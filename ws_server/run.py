@@ -3,7 +3,6 @@ import json
 import base64
 import asyncio
 import random
-import hashlib
 import string
 from os import path
 from time import time
@@ -59,12 +58,12 @@ class BroadCastHandler:
                 rsa.encrypt(orig_key.encode('utf8'), self._super_admin_pubkey)
             ).decode('utf8')
             hashed_key: str = self._ph.hash(orig_key)
-            md5ed_key: str = hashlib.md5(orig_key.encode('utf-8')).hexdigest()
-            if sql.is_key_addable(key_index=md5ed_key, key_value=hashed_key):
+            naive_hashed_key: str = utils.naive_hash(orig_key)
+            if sql.is_key_addable(key_index=naive_hashed_key, key_value=hashed_key):
                 curr_time = utils.curr_time()
                 expired_time = 0 if not available_days else curr_time + available_days*3600*24
                 sql.insert_element(sql.Key(
-                    key_index=md5ed_key,
+                    key_index=naive_hashed_key,
                     key_value=hashed_key,
                     key_created_time=curr_time,
                     key_max_users=max_users,
@@ -178,7 +177,14 @@ class BroadCastHandler:
     # 普通管理员权限
     async def check_handler(self, request):
         try:
-            await self._verify_json_req(request, self._admin_pubkey)
+            sql.select_and_check()
+            _, data = await self._verify_json_req(request, self._admin_pubkey)
+            search_results = {}
+            if 'naive_hashed_key' in data:
+                key = sql.select_by_primary_key(data['naive_hashed_key'])
+                result = key.as_str() if key is not None else '404'
+                search_results['key_searched_by_naive_hash'] = result
+
             return web.json_response({
                 'code': 0,
                 'type': 'server_status',
@@ -186,7 +192,8 @@ class BroadCastHandler:
                     'observers_num': f'当前用户共{self._broadcaster.num_observers()}',
                     # 'observers_count': self._broadcaster.count(),
                     'posters_count': self._post_office.count(),
-                    'curr_db': [[key.key_index[:5], f'{key.key_created_time}->{key.key_expired_time}'] for key in sql.select_and_check()],
+                    'curr_db': '',
+                    'search_results': search_results,
                     'curr_time': utils.curr_time(),
                     'encrypted_msg2admin': [],  # 管理员信息需要私钥解密
                     'encrypted_msg2super_admin': []  # 超管信息需要超管私钥解密

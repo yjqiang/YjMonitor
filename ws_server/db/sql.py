@@ -30,6 +30,10 @@ class Key:
         key_expired_time = int(self.key_expired_time)
         return key_index, key_value, key_created_time, key_max_users, key_expired_time
 
+    def as_str(self):
+        return f'key的有效时间:{self.key_created_time}-{self.key_expired_time}, ' \
+            f'最多允许同时在线人数为{self.key_max_users}'
+
 
 class KeysTable:
     def __init__(self):
@@ -85,7 +89,7 @@ def select_all():
 
 
 def is_key_verified(orig_key: str) -> Optional[Key]:
-    key_index = hashlib.md5(orig_key.encode('utf-8')).hexdigest()
+    key_index = utils.naive_hash(orig_key)
     key = keys_table.select_by_primary_key(key_index)
     if key is None:
         return None
@@ -106,3 +110,7 @@ def select_and_check():
     with conn:
         conn.execute('DELETE FROM keys WHERE key_expired_time<? and key_expired_time!=0', (utils.curr_time(),))
     return keys_table.select_all()
+
+
+def select_by_primary_key(key_index):
+    return keys_table.select_by_primary_key(key_index)

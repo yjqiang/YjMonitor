@@ -8,6 +8,7 @@ import global_var
 
 
 name = 'bbbn'  # 用户名没必要改
+key = 'XEmdl:F!`<@Q0jIN'
 
 with open(f'{global_var.KEY_PATH}/admin_privkey.pem', 'rb') as f:
     admin_privkey = rsa.PrivateKey.load_pkcs1(f.read())
@@ -18,11 +19,15 @@ dict_signature = utils.make_signature(
     admin_privkey,
     need_name=True)
 
-
+data = {}
+if key:
+    naive_hashed_key = utils.naive_hash(key)
+    data['naive_hashed_key'] = naive_hashed_key
+    
 data = {
     'code': 0,
     'type': 'raffle',
-    'data': {},
+    'data': data,
     'verification': dict_signature,
     }
     
