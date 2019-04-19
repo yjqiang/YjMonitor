@@ -14,7 +14,7 @@ def naive_hash(orig_key: str):  # 快速哈希，目的用于数据快速查找�
     return hashlib.md5(orig_key.encode('utf-8')).hexdigest()[:16]
 
 
-def sign(msg: str, privkey: rsa.PrivateKey) -> str:
+def sign(msg: str, privkey: rsa.PrivateKey) -> str:  # 签名
     bytes_msg = msg.encode('utf8')
     bytes_signature = rsa.sign(bytes_msg, privkey, 'SHA-256')
     str_signature = base64.b64encode(bytes_signature).decode('utf8')
@@ -48,5 +48,5 @@ def request_json(method, url, timeout=3, **kwargs):
                 return {'code': 404}
         except Exception as e:
             print(e)
-            sleep(3)
+            sleep(0.5)
 

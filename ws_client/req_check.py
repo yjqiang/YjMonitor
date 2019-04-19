@@ -8,7 +8,7 @@ import global_var
 
 
 name = 'bbbn'  # 用户名没必要改
-key = 'XEmdl:F!`<@Q0jIN'
+key = 'V_F<Nv)!WeK]irWY'  # 检测 key 是否存在以及相关信息
 
 with open(f'{global_var.KEY_PATH}/admin_privkey.pem', 'rb') as f:
     admin_privkey = rsa.PrivateKey.load_pkcs1(f.read())
