@@ -48,7 +48,7 @@ set_checkmsg(f'{int(START/100)}阝阝{int(END/100)}')
 set_roomid(yj_danmu_roomid)
 set_values(
     key=admin_privkey,
-    name=f'{START}-{END}',
+    name=f'{START}-{END}V4.2',
     url=dict_ctrl['other_control']['post_office'])
 
 
