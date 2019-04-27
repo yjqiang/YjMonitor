@@ -166,6 +166,8 @@ class YjMonitorPoster:
             'verification': dict_signature
             }
         json_rsp = await user.req_s(UtilsReq.send2yj_monitor, user, self.url, data)
+        if json_rsp['code']:
+            user.warn(json_rsp)
         
         user.info([f'已推送{raffle_id},结果反馈为: {json_rsp}'], True)
     
