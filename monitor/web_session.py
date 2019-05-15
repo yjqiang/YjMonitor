@@ -2,6 +2,8 @@ import sys
 import asyncio
 import aiohttp
 import printer
+from exceptions import LogoutError, RspError
+from json_rsp_ctrl import Ctrl, JsonRspType, DEFAULT_CTRL, TMP_DEFAULT_CTRL
 
 sem = asyncio.Semaphore(3)
 
@@ -10,32 +12,18 @@ class WebSession:
     def __init__(self):
         self.var_session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=4))
 
-    async def __get_json_body(self, rsp, is_login=False):
+    @staticmethod
+    async def __get_json_body(rsp):
         json_body = await rsp.json(content_type=None)
-        # 之后考虑加入expected_code、循环code、登录code来约束这个判定
-        code = json_body['code']
-        if code == 1024:
-            print('b站炸了，暂停所有请求1.5s后重试，请耐心等待')
-            await asyncio.sleep(1.5)
-            return None
-        elif code == 3 or code == -401 or code == 1003 or code == -101 or code == 401:
-            print('api提示没有登录')
-            print(json_body)
-            if not is_login:
-                return 3
-            else:
-                return json_body
-        
         return json_body
 
-    async def __get_text_body(self, rsp):
+    @staticmethod
+    async def __get_text_body(rsp):
         text = await rsp.text()
-        if not text:
-            printer.warn(f'json_body出现问题   {text}')
-            return None
         return text
 
-    async def __get_binary_body(self, rsp):
+    @staticmethod
+    async def __get_binary_body(rsp):
         return await rsp.read()
 
     # method 类似于aiohttp里面的对应method，目前只支持GET、POST
@@ -43,44 +31,48 @@ class WebSession:
     async def request_json(self,
                            method,
                            url,
-                           headers=None,
-                           data=None,
-                           params=None,
-                           json=None,
-                           is_none_allowed=False,
-                           is_login=False):
+                           is_login=False,
+                           ctrl: Ctrl = TMP_DEFAULT_CTRL,
+                           **kwargs) -> dict:
         async with sem:
             i = 0
             while True:
                 i += 1
                 if i >= 10:
                     printer.warn(url)
-                    if is_none_allowed:
-                        return None
                 try:
-                    async with self.var_session.request(method, url, headers=headers, data=data, params=params, json=json) as rsp:
+                    async with self.var_session.request(method, url, **kwargs) as rsp:
                         if rsp.status == 200:
-                            json_body = await self.__get_json_body(
-                                rsp, is_login)
-                            if json_body is not None or is_none_allowed:
-                                return json_body
+                            json_body = await self.__get_json_body(rsp)
+                            if json_body:  # 有时候是None或空，直接屏蔽。下面的read/text类似，禁止返回空的东西
+                                json_rsp_type = ctrl.verify(json_body)
+                                if json_rsp_type == JsonRspType.OK:
+                                    return json_body
+                                elif json_rsp_type == JsonRspType.IGNORE:
+                                    await asyncio.sleep(1.0)
+                                elif json_rsp_type == JsonRspType.LOGOUT:
+                                    print('api提示没有登录')
+                                    print(json_body)
+                                    if not is_login:
+                                        raise LogoutError(msg='提示没有登陆')
+                                    else:
+                                        return json_body
                         elif rsp.status == 403:
                             printer.warn(f'403频繁, {url}')
                             await asyncio.sleep(240)
-                        elif rsp.status == 404:
-                            return None
+                except RspError:
+                    raise
+                except asyncio.CancelledError:
+                    raise
                 except:
                     # print('当前网络不好，正在重试，请反馈开发者!!!!')
                     print(sys.exc_info()[0], sys.exc_info()[1], url)
-                    continue
+                await asyncio.sleep(0.02)
 
     async def request_binary(self,
                              method,
                              url,
-                             headers=None,
-                             data=None,
-                             params=None,
-                             is_none_allowed=False):
+                             **kwargs) -> bytes:
         async with sem:
             i = 0
             while True:
@@ -88,28 +80,25 @@ class WebSession:
                 if i >= 10:
                     printer.warn(url)
                 try:
-                    async with self.var_session.request(method, url, headers=headers, data=data, params=params) as rsp:
+                    async with self.var_session.request(method, url, **kwargs) as rsp:
                         if rsp.status == 200:
                             binary_body = await self.__get_binary_body(rsp)
-                            if binary_body is not None or is_none_allowed:
+                            if binary_body:
                                 return binary_body
                         elif rsp.status == 403:
                             printer.warn(f'403频繁, {url}')
                             await asyncio.sleep(240)
-                        elif rsp.status == 404:
-                            return None
+                except asyncio.CancelledError:
+                    raise
                 except:
                     # print('当前网络不好，正在重试，请反馈开发者!!!!')
                     print(sys.exc_info()[0], sys.exc_info()[1], url)
-                    continue
+                await asyncio.sleep(0.02)
 
     async def request_text(self,
                            method,
                            url,
-                           headers=None,
-                           data=None,
-                           params=None,
-                           is_none_allowed=False):
+                           **kwargs) -> str:
         async with sem:
             i = 0
             while True:
@@ -117,18 +106,17 @@ class WebSession:
                 if i >= 10:
                     printer.warn(url)
                 try:
-                    async with self.var_session.request(method, url, headers=headers, data=data, params=params) as rsp:
+                    async with self.var_session.request(method, url, **kwargs) as rsp:
                         if rsp.status == 200:
                             text_body = await self.__get_text_body(rsp)
-                            if text_body is not None or is_none_allowed:
+                            if text_body:
                                 return text_body
                         elif rsp.status == 403:
                             printer.warn(f'403频繁, {url}')
                             await asyncio.sleep(240)
-                        elif rsp.status == 404:
-                            return None
+                except asyncio.CancelledError:
+                    raise
                 except:
                     # print('当前网络不好，正在重试，请反馈开发者!!!!')
                     print(sys.exc_info()[0], sys.exc_info()[1], url)
-                    continue
-
+                await asyncio.sleep(0.02)

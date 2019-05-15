@@ -1,0 +1,5 @@
+[other_control]  # 其他细节控制
+post_office = 'http://127.0.0.1:8001/post_raffle'
+
+START = 0
+END = 2000

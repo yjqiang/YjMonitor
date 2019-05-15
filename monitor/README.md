@@ -1,4 +1,4 @@
-1. monitor 可以切换两种发送模式：使用哔哩哔哩弹幕服务器作为中转模式、自定义 ws_server 作为中转模式，两模式不可共存。
-1. conf/ctrl.toml 中的 `raffle_monitor_roomid` 定义了发送目标房间，结果都会发到指定房间里面(使用哔哩哔哩服务器作为中转时)；`post_office` 定义了 ws_server 的服务器地址（方法是直接 POST ，这是 ws_server 自定义中转服务器模式）；START 与 END 控制监控房间的范围。
-1. 发送模式切换方法：如果使用 ws_server 作为中转，[guard](https://github.com/yjqiang/YjMonitor/blob/master/monitor/tasks/guard_raffle_handler.py#L11) 和 [storm](https://github.com/yjqiang/YjMonitor/blob/master/monitor/tasks/storm_raffle_handler.py#L9) 需要均把 `check_v1` 改成 `check_v2`，同时设置 ctrl.toml 里面的 `post_office` 为有效值, key 文件夹内只需要 admin_privkey.pem 即可，为了防止恶意推送，这个 key 用于验证推送者身份的正确性；默认使用哔哩哔哩弹幕服务器作为中转点，需要 ctrl.toml 里面目标房间有效。***目前无论是否需要 ws_server 作为服务器，都需要一个有效 admin_privkey.pem 作为填充。***
+1. monitor 自定义 ws_server 作为中转模式
+1. conf/ctrl.toml 中的 `post_office` 定义了 ws_server 的服务器地址（方法是直接 POST ，这是 ws_server 自定义中转服务器模式）；START 与 END 控制监控房间的范围。
+1. 使用方法：如果使用 ws_server 作为中转，设置 ctrl.toml 里面的 `post_office` 为有效值, key 文件夹内只需要 admin_privkey.pem 即可，为了防止恶意推送，这个 key 用于验证推送者身份的正确性。
 1. 由于python性能问题，推荐 2000 左右个房间/机器，需要几台机器协同一起监控，之后考虑golang（flag)。
