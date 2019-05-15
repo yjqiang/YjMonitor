@@ -3,3 +3,6 @@
 /.test.py.icloud
 *.pem
 *.db
+monitor/conf/ctrl.toml
+monitor/conf/user.toml
+.idea/
