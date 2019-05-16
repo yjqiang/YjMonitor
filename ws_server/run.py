@@ -189,6 +189,7 @@ class BroadCastHandler:
                 'code': 0,
                 'type': 'server_status',
                 'data': {
+                    'version': '0.1.1',
                     'observers_num': f'当前用户共{self._broadcaster.num_observers()}',
                     # 'observers_count': self._broadcaster.count(),
                     'posters_count': self._post_office.count(),
@@ -241,7 +242,7 @@ class BroadCastHandler:
         if isinstance(ip, str) and not self._can_pass_ip_test(ip):
             info(f'拒绝来自{ip}的连接请求')
             try:
-                await asyncio.sleep(1.5)
+                await asyncio.sleep(2)
             except asyncio.CancelledError:
                 pass
             return web.Response(status=403, body='403', content_type='application/json')
