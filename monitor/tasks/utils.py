@@ -1,3 +1,5 @@
+import asyncio
+
 import printer
 import utils
 from reqs.utils import UtilsReq
@@ -15,6 +17,31 @@ class UtilsTask:
             printer.info(f'本次刷新房间总计获取 None, 请求起止指针{start}-{end}')
             rooms = None
         return rooms
+
+    @staticmethod
+    async def fetch_rooms_from_bili(user, url):
+        rooms = []
+        for page in range(1, 250):
+            if not (page % 20):
+                print(f'{url}截止第{page}页，获取{len(rooms)}个房间(可能重复)')
+
+            json_rsp = await user.req_s(UtilsReq.fetch_rooms_from_bili, user, url, page)
+            data = json_rsp['data']
+
+            if not data or max(room['online'] for room in data) <= 100:
+                print(f'{url}截止结束页（第{page}页），获取{len(rooms)}个房间(可能重复)')
+                break
+            for room in data:
+                rooms.append(int(room['roomid']))
+            await asyncio.sleep(0.15)
+
+        print('去重之前', len(rooms))
+        unique_rooms = []
+        for room_id in rooms:
+            if room_id not in unique_rooms:
+                unique_rooms.append(room_id)
+        print('去重之后', len(unique_rooms))
+        return unique_rooms
 
     @staticmethod
     async def send2yj_monitor(user, *args):

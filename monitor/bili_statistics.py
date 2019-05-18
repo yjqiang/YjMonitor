@@ -38,7 +38,7 @@ class BiliStatistics:
             self.__print_one_stats(user_id)
     
     def __print_one_stats(self, user_id):
-        print('本次参与抽奖统计：')
+        print('本次推送抽奖统计：')
         joined_of_id = self.joined_raffles.get(user_id, {})
         for k, v in joined_of_id.items():
             print(f'{v:^5} X {k}')

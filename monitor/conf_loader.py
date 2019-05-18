@@ -10,6 +10,7 @@ class ConfLoader:
         self.file_user = f'{path_conf}/user.toml'
         self.file_bili = f'{path_conf}/bili.toml'
         self.file_ctrl = f'{path_conf}/ctrl.toml'
+        self.file_roomid = f'{path_conf}/roomid.toml'
         self.key_path = f'{root_path}/key/admin_privkey.pem'
         
     @staticmethod
@@ -36,6 +37,9 @@ class ConfLoader:
         
     def read_ctrl(self):
         return self.toml_load(self.file_ctrl)
+
+    def read_roomid(self):
+        return self.toml_load(self.file_roomid)
 
     def read_key(self):
         with open(self.key_path, 'rb') as f:
@@ -64,3 +68,7 @@ def read_ctrl():
 
 def read_key():
     return var.read_key()
+
+
+def read_roomid():
+    return var.read_roomid()

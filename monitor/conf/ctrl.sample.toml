@@ -3,3 +3,6 @@ post_office = 'http://127.0.0.1:8001/post_raffle'
 
 START = 0
 END = 2000
+
+yjmonitor_tcp_addr = ''
+yjmonitor_tcp_key = ''

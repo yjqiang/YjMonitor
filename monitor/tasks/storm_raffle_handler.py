@@ -34,4 +34,5 @@ class StormRaffleJoinTask(ForcedTask):
     @staticmethod
     @normal
     async def work(user, raffle_data: dict):
+        bili_statistics.add2joined_raffles('飓风暴(合计)', user.id)
         await UtilsTask.send2yj_monitor(user, raffle_data)

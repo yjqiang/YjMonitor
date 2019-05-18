@@ -1,5 +1,4 @@
 import init_eventloop
-import random
 import sys
 import signal
 import threading
@@ -29,6 +28,7 @@ admin_privkey = conf_loader.read_key()
 
 # user设置
 users = []
+assert len(dict_user['users']) == 1
 for user_info in dict_user['users']:
     users.append(User(user_info, dict_bili))
 notifier.init(users=users)
@@ -41,7 +41,7 @@ END = dict_ctrl['other_control']['END']
 bili_statistics.init(area_num=1, area_duplicated=False)
 tasks.utils.init(
     key=admin_privkey,
-    name=f'{START}-{END}V5.0b0',
+    name=f'{START}-{END}V6.0b0',
     url=dict_ctrl['other_control']['post_office'])
 
 
