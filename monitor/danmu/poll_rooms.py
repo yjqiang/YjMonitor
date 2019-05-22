@@ -18,12 +18,12 @@ class PollRoomChecker:
         print(f'正在刷新查看ONLINE房间')
         base_url = 'http://api.live.bilibili.com'
         urls = [
-            f'{base_url}/room/v1/Area/getListByAreaID?areaId=0&sort=online&pageSize=40&page=',
-            f'{base_url}/room/v1/room/get_user_recommend?page=',
+            f'{base_url}/room/v1/Area/getListByAreaID?areaId=0&sort=online&pageSize=60&page=',
+            f'{base_url}/room/v1/room/get_user_recommend?page_size=60&page=',
         ]
         roomlists = [await notifier.exec_func(UtilsTask.fetch_rooms_from_bili, urls[0])]
         for url in urls[1:]:
-            await asyncio.sleep(5)
+            await asyncio.sleep(4)
             roomlists.append(await notifier.exec_func(UtilsTask.fetch_rooms_from_bili, url))
         print(f'结束本轮刷新查看ONLINE房间')
         dyn_rooms = []
