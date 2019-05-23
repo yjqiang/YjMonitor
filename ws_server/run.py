@@ -17,10 +17,10 @@ from db import sql
 import utils
 from printer import info
 import json_req_exceptions
-import ws_req_exceptions
 import tcp_req_exception
-from receiver import WsReceiverConn, TcpReceiverConn, Receiver, BroadCaster
+from receiver import TcpReceiverConn, Receiver, BroadCaster
 from poster import PostOffice
+from bili_statistics import DuplicateChecker
 
 
 class BroadCastHandler:
@@ -33,10 +33,7 @@ class BroadCastHandler:
         self._ph = PasswordHasher()
         self._conn_list: Dict[str, int] = {}
         self._lock_open_conn = asyncio.Semaphore(2)
-
-    @staticmethod
-    async def ws_test_handle(_):
-        return web.json_response({'code': 0,  'type': 'test ws-server', 'data': {}})
+        self._duplicate_checker = DuplicateChecker()
 
     def _can_pass_ip_test(self, ip):
         curr_time = int(time())
@@ -122,33 +119,6 @@ class BroadCastHandler:
                     raise json_req_exceptions.DataError
         raise json_req_exceptions.DataError
 
-    async def _verify_ws_req(self, rsp: web.WebSocketResponse, request) -> Receiver:
-        conn = None
-        try:
-            await rsp.prepare(request)  # 完成交接之后可以conn正式有效
-            conn = WsReceiverConn(rsp)
-            json_data = await conn.recv_json()
-            if json_data is not None:  # 这段是ws的开头，需要验证key
-                orig_key = json_data['data']['key']
-                key = sql.is_key_verified(orig_key)
-                if key is not None:
-                    if self._broadcaster.can_pass_max_users_test(key.key_index, key.key_max_users):
-                        user = Receiver(user_conn=conn, user_key_index=key.key_index)
-                        return user
-                    else:
-                        info(f'KEY({key.key_index[:5]}***...)用户过多')
-                        raise ws_req_exceptions.MaxError(conn)
-                else:
-                    info('有人恶意尝试KEY')
-                    raise ws_req_exceptions.VerificationError(conn)
-            else:
-                raise ws_req_exceptions.DataError(conn)
-
-        except ws_req_exceptions.WsReqError:
-            raise
-        except:
-            raise ws_req_exceptions.OtherError(conn)
-
     async def _verify_tcp_req(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> Receiver:
         conn = TcpReceiverConn(writer=writer, reader=reader)
         try:
@@ -189,7 +159,7 @@ class BroadCastHandler:
                 'code': 0,
                 'type': 'server_status',
                 'data': {
-                    'version': '0.1.1',
+                    'version': '0.1.2',
                     'observers_num': f'当前用户共{self._broadcaster.num_observers()}',
                     # 'observers_count': self._broadcaster.count(),
                     'posters_count': self._post_office.count(),
@@ -228,59 +198,16 @@ class BroadCastHandler:
                 'type': 'raffle',
                 'data': data
             }
-            asyncio.ensure_future(self._broadcast_raffle(sending_json_data))
+            if 'raffle_id' in data:
+                raffle_id = int(data['raffle_id'])
+                if self._duplicate_checker.add2checker(raffle_id):
+                    asyncio.ensure_future(self._broadcast_raffle(sending_json_data))
             return web.json_response({'code': 0, 'type': '', 'data': {}})
         except json_req_exceptions.JsonReqError as e:
             return web.json_response(e.RSP_SUGGESTED)
 
     async def on_shutdown(self, _):
         await self._broadcaster.broadcast_close()
-
-    async def ws_receiver_handler(self, request):
-        ip = request.remote
-        info(f'IP({ip:^15})请求建立推送连接')
-        if isinstance(ip, str) and not self._can_pass_ip_test(ip):
-            info(f'拒绝来自{ip}的连接请求')
-            try:
-                await asyncio.sleep(2)
-            except asyncio.CancelledError:
-                pass
-            return web.Response(status=403, body='403', content_type='application/json')
-
-        resp = web.WebSocketResponse(heartbeat=30, receive_timeout=40)
-        if not resp.can_prepare(request):
-            return resp
-
-        try:
-            user = await self._verify_ws_req(resp, request)
-        except ws_req_exceptions.WsReqError as e:
-            if e.conn is not None:
-                await e.conn.send_json(e.RSP_SUGGESTED)
-                await e.conn.close()
-            return resp
-
-        self._broadcaster.append(user)
-        info(f'IP({ip:^15})用户{user.user_key_index[:5]}加入')
-
-        try:
-            if not await user.user_conn.send_json({'code': 0, 'type': 'entered', 'data': {}}):
-                return resp
-            while True:
-                dict_data = await user.user_conn.recv_json()
-                if dict_data is None:
-                    return resp
-                info(dict_data)
-        except asyncio.CancelledError:
-            # aiohttp正常逻辑（反正就会中断。。。）
-            return resp
-        except:
-            info(sys.exc_info()[0], sys.exc_info()[1])
-            return resp
-        finally:
-            self._broadcaster.remove(user)
-            info(f'用户{user.user_key_index[:5]}删除')
-            # https://aiohttp.readthedocs.io/en/stable/web_advanced.html#web-handler-cancellation
-            await asyncio.shield(user.user_conn.close())
 
     async def tcp_receiver_handle(self, reader, writer):
         addr, _ = writer.get_extra_info('peername')
@@ -289,7 +216,7 @@ class BroadCastHandler:
         if isinstance(addr, str) and not self._can_pass_ip_test(addr):
             info(f'拒绝来自{addr}的连接请求')
             try:
-                await asyncio.sleep(1.5)
+                await asyncio.sleep(2)
                 writer.close()
             except asyncio.CancelledError:
                 pass
@@ -339,14 +266,12 @@ def main():
 
     loop = asyncio.get_event_loop()
     coro = asyncio.start_server(broadcast_handler.tcp_receiver_handle, '0.0.0.0', 8002, loop=loop)
-    server = loop.run_until_complete(coro)
+    loop.run_until_complete(coro)
 
     app = web.Application()
-    # app.router.add_route('GET', '/ws_test', broadcast_handler.ws_test_handle)
     app.router.add_route('GET', '/check', broadcast_handler.check_handler)
     app.router.add_route('GET', '/create_key', broadcast_handler.create_key_handler)
     app.router.add_route('POST', '/post_raffle', broadcast_handler.post_raffle_handler)
-    # app.router.add_route('GET', '/ws', broadcast_handler.ws_receiver_handler)
     app.on_shutdown.append(broadcast_handler.on_shutdown)
     web.run_app(app, port=8001)
 
