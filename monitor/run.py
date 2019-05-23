@@ -41,7 +41,7 @@ END = dict_ctrl['other_control']['END']
 bili_statistics.init(area_num=1, area_duplicated=False)
 tasks.utils.init(
     key=admin_privkey,
-    name=f'{START}-{END}V6.0b0',
+    name=f'{START}-{END}V6.0b1',
     url=dict_ctrl['other_control']['post_office'])
 
 
@@ -61,7 +61,9 @@ async def fetch_roomid_periodic():
         if not room_id:
             monitor.pause()
 
-    for monitor in monitors:
+    for i, monitor in enumerate(monitors):
+        if not i % 20:
+            await asyncio.sleep(0.2)
         loop.create_task(monitor.run())
 
     while True:
