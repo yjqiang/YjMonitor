@@ -15,9 +15,9 @@ class GuardRafflJoinTask(ForcedTask):  # 负责push
         for i in range(try_times):
             json_rsp = await user.req_s(GuardRaffleHandlerReq.check, user, real_roomid)
             # print(json_rsp)
-            if json_rsp['data']:
+            if json_rsp['data'] and (try_times == 1 or i >= try_times/2):
                 break
-            await asyncio.sleep(1)
+            await asyncio.sleep(1.7)
         else:
             print(f'{real_roomid}没有guard或者guard已经领取')
             return
@@ -29,7 +29,6 @@ class GuardRafflJoinTask(ForcedTask):  # 负责push
             # 总督长达一天，额外处理
             max_wait = min(j['time'] - 20, 240)
             privilege_type = j['privilege_type']
-            print('privilege_type', privilege_type == 1, privilege_type == 3)
             if privilege_type != 1 and (not bili_statistics.is_raffleid_duplicate(raffle_id))\
                     and raffle_id > max_raffleid - 30:
                 print('本次获取到的抽奖id为', raffle_id)

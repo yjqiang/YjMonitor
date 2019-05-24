@@ -1,11 +1,12 @@
 from bili_global import API_LIVE
+from json_rsp_ctrl import ZERO_ONLY_CTRL
 
 
 class GuardRaffleHandlerReq:
     @staticmethod
     async def check(user, real_roomid):
         url = f'{API_LIVE}/lottery/v1/Lottery/check_guard?roomid={real_roomid}'
-        json_rsp = await user.bililive_session.request_json('GET', url, headers=user.dict_bili['pcheaders'])
+        json_rsp = await user.bililive_session.request_json('GET', url, ctrl=ZERO_ONLY_CTRL)
         return json_rsp
     
     @staticmethod
