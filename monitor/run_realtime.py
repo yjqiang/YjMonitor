@@ -9,6 +9,8 @@ import asyncio
 from itertools import zip_longest
 from typing import List
 
+import schedule
+
 import conf_loader
 import notifier
 import bili_statistics
@@ -43,7 +45,7 @@ other_control = dict_ctrl['other_control']
 bili_statistics.init(area_num=1, area_duplicated=False)
 tasks.utils.init(
     key=admin_privkey,
-    name=f'REALTIMEV6.0b0',
+    name=f'REALTIMEV6.0b1',
     url=dict_ctrl['other_control']['post_office'])
 
 
@@ -68,10 +70,23 @@ async def refresh_online_roomid():
     return dyn_rooms
 
 
+# 每隔一段时间清理（防止有房间明明关了，但是没有收到）
+def clean_rooms(monitors: List[DanmuRaffleMonitor]):
+    for monitor in monitors:
+        monitor.pause()
+
+
 async def add_onlinerooms_monitor():
     monitors: List[DanmuRaffleMonitor] = []
+    schedule.every().day.at('05:00').do(clean_rooms, monitors)
+    schedule.every().day.at('15:00').do(clean_rooms, monitors)
     area_id = 0
     while True:
+        if schedule.idle_seconds() <= 3:
+            await asyncio.sleep(5)
+            schedule.run_pending()
+            await asyncio.sleep(120)
+
         list_new_rooms = await refresh_online_roomid()
 
         set_new_rooms = set(list_new_rooms)
@@ -79,9 +94,9 @@ async def add_onlinerooms_monitor():
         list_unique_old_index = []  # 过期（下线）的直播间
         for i, monitor in enumerate(monitors):
             room_id = monitor.room_id
-            if room_id and room_id in set_new_rooms:
+            if not monitor.paused and room_id and room_id in set_new_rooms:
                 set_common_rooms.add(room_id)
-            elif monitor.paused:
+            else:
                 list_unique_old_index.append(i)
 
         set_unique_new_rooms = set_new_rooms - set_common_rooms
