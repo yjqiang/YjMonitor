@@ -1,3 +1,6 @@
+"""这是主要的监控，每隔 20 分钟刷新一次房间号码
+"""
+
 import init_eventloop
 import sys
 import signal

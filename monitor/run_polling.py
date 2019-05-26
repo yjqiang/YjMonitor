@@ -1,4 +1,6 @@
-# 轮询房间，筛除自带的conf里面的静态房间，同时需要从Yj获取到已经做掉的数据，保证不会重复
+"""补足监控。轮询房间，筛除自带的 conf 里面的静态房间，同时需要从 Yj 获取到已经做掉的数据，保证不会重复
+"""
+
 import init_eventloop
 import sys
 import signal
@@ -38,7 +40,7 @@ other_control = dict_ctrl['other_control']
 bili_statistics.init(area_num=1, area_duplicated=False)
 tasks.utils.init(
     key=admin_privkey,
-    name=f'POLLINGV6.0b3',
+    name=f'POLLINGV6.0b4',
     url=dict_ctrl['other_control']['post_office'])
 
 
@@ -51,8 +53,6 @@ async def fetch_roomid_periodic():
         area_id=0)
     asyncio.create_task(monitor.run())
     await PollRoomChecker().run()
-
-
 
 
 # 初始化控制台

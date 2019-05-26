@@ -100,6 +100,11 @@ class Client:
             print(f'{self._area_id}号数据连接退出，剩余任务处理完毕')
         self._waiting_end.set_result(True)
 
+    @property
+    def paused(self):
+        return self._waiting_pause is not None
+
+
     def pause(self):
         if self._waiting_pause is None:
             self._waiting_pause = self._loop.create_future()
