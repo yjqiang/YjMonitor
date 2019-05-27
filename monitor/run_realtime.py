@@ -45,7 +45,7 @@ other_control = dict_ctrl['other_control']
 bili_statistics.init(area_num=1, area_duplicated=False)
 tasks.utils.init(
     key=admin_privkey,
-    name=f'REALTIMEV6.0b1',
+    name=f'REALTIMEV6.0b2',
     url=dict_ctrl['other_control']['post_office'])
 
 
@@ -96,7 +96,7 @@ async def add_onlinerooms_monitor():
             room_id = monitor.room_id
             if not monitor.paused and room_id and room_id in set_new_rooms:
                 set_common_rooms.add(room_id)
-            else:
+            elif monitor.paused:
                 list_unique_old_index.append(i)
 
         set_unique_new_rooms = set_new_rooms - set_common_rooms
