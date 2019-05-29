@@ -37,10 +37,12 @@ notifier.init(users=users)
 loop.run_until_complete(notifier.exec_task(LoginTask))
 
 other_control = dict_ctrl['other_control']
+START = dict_ctrl['other_control']['START']
+END = dict_ctrl['other_control']['END']
 bili_statistics.init(area_num=1, area_duplicated=False)
 tasks.utils.init(
     key=admin_privkey,
-    name=f'POLLINGV6.0b4',
+    name=f'{START}-{END}POLLINGV6.0b5',
     url=dict_ctrl['other_control']['post_office'])
 
 
@@ -52,7 +54,7 @@ async def fetch_roomid_periodic():
         url=yjmonitor_tcp_addr,
         area_id=0)
     asyncio.create_task(monitor.run())
-    await PollRoomChecker().run()
+    await PollRoomChecker().run(START, END)
 
 
 # 初始化控制台

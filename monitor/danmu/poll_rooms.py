@@ -15,12 +15,12 @@ class PollRoomChecker:
         self.static_rooms = dic_roomid['roomid']
         assert len(self.static_rooms) == len(set(self.static_rooms))
 
-    async def refresh(self):
+    async def refresh(self, start: int, end: int):
         print(f'正在刷新查看ONLINE房间')
         base_url = 'http://api.live.bilibili.com'
         urls = [
-            f'{base_url}/room/v1/Area/getListByAreaID?areaId=0&sort=online&pageSize=100&page=',
-            f'{base_url}/room/v1/room/get_user_recommend?page_size=100&page=',
+            f'{base_url}/room/v1/Area/getListByAreaID?areaId=0&sort=online&pageSize=150&page=',
+            f'{base_url}/room/v1/room/get_user_recommend?page_size=150&page=',
         ]
         roomlists = [await notifier.exec_func(UtilsTask.fetch_rooms_from_bili, urls[0])]
         for url in urls[1:]:
@@ -33,13 +33,13 @@ class PollRoomChecker:
                 if room and room not in self.static_rooms and room not in dyn_rooms:
                     dyn_rooms.append(room)
         print(f'POLL ROOMS 收获了{len(dyn_rooms)}个房间')
-        dyn_rooms = dyn_rooms[:1000]
+        dyn_rooms = dyn_rooms[start: end]
         print(f'POLL ROOMS 截取了{len(dyn_rooms)}个房间')
         for room_id in dyn_rooms:
             raffle_handler.exec_at_once(GuardRafflJoinTask, room_id, 1)
             await asyncio.sleep(0.02)
 
-    async def run(self):
+    async def run(self, start: int, end: int):
         while True:
-            await self.refresh()
+            await self.refresh(start, end)
             await asyncio.sleep(7)
