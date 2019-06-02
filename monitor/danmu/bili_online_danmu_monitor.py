@@ -39,5 +39,10 @@ class DanmuRaffleMonitor(WsDanmuClient):
                 if raffle_name != '总督':
                     raffle_handler.push2queue(GuardRafflJoinTask, real_roomid)
                     bili_statistics.add2pushed_raffles(raffle_name, broadcast_type=2)
+        elif cmd == 'GUARD_MSG':
+            if 'buy_type' in data and data['buy_type'] != 1:
+                print(f'{self._area_id}号数据连接检测到{self._room_id:^9}的提督/舰长（老API）')
+                raffle_handler.push2queue(GuardRafflJoinTask, self._room_id)
+                bili_statistics.add2pushed_raffles('提督/舰长', broadcast_type=2)
 
         return True
