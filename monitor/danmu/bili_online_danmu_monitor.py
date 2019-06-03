@@ -35,14 +35,24 @@ class DanmuRaffleMonitor(WsDanmuClient):
             msg_common = msg_common.replace('“', '')
             if msg_type == 3:
                 raffle_name = msg_common.split('开通了')[-1][:2]
-                print(f'{self._area_id}号数据连接检测到{real_roomid:^9}的{raffle_name}')
                 if raffle_name != '总督':
+                    print(f'{self._area_id}号数据连接检测到{real_roomid:^9}的提督/舰长（API0）')
                     raffle_handler.push2queue(GuardRafflJoinTask, real_roomid)
-                    bili_statistics.add2pushed_raffles(raffle_name, broadcast_type=2)
+                    bili_statistics.add2pushed_raffles('提督/舰长（API0）', broadcast_type=2)
         elif cmd == 'GUARD_MSG':
             if 'buy_type' in data and data['buy_type'] != 1:
-                print(f'{self._area_id}号数据连接检测到{self._room_id:^9}的提督/舰长（老API）')
+                print(f'{self._area_id}号数据连接检测到{self._room_id:^9}的提督/舰长（API1）')
                 raffle_handler.push2queue(GuardRafflJoinTask, self._room_id)
-                bili_statistics.add2pushed_raffles('提督/舰长', broadcast_type=2)
+                bili_statistics.add2pushed_raffles('提督/舰长（API1）', broadcast_type=2)
+        elif cmd == "USER_TOAST_MSG":
+            if data['data']['guard_level'] != 1:
+                print(f'{self._area_id}号数据连接检测到{self._room_id:^9}的提督/舰长（API2）')
+                raffle_handler.push2queue(GuardRafflJoinTask, self._room_id)
+                bili_statistics.add2pushed_raffles('提督/舰长（API2）', broadcast_type=2)
+        elif cmd == "GUARD_BUY":
+            if data['data']['guard_level'] != 1:
+                print(f'{self._area_id}号数据连接检测到{self._room_id:^9}的提督/舰长（API3）')
+                raffle_handler.push2queue(GuardRafflJoinTask, self._room_id)
+                bili_statistics.add2pushed_raffles('提督/舰长（API3）', broadcast_type=2)
 
         return True
