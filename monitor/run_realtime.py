@@ -45,7 +45,7 @@ other_control = dict_ctrl['other_control']
 bili_statistics.init(area_num=1, area_duplicated=False)
 tasks.utils.init(
     key=admin_privkey,
-    name=f'REALTIMEV6.0b4',
+    name=f'REALTIMEV6.0b5',
     url=dict_ctrl['other_control']['post_office'])
 
 
@@ -119,6 +119,8 @@ async def add_onlinerooms_monitor():
                     await asyncio.sleep(0.2)
                 area_id += 1
                 monitors.append(monitor)
+        if set_unique_new_rooms:
+            await asyncio.sleep(7)
 
 
 # 初始化控制台
