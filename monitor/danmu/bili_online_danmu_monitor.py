@@ -1,58 +1,62 @@
 """与 run_realtime.py 配合使用，保证只会监听在线的房间
 """
+from struct import Struct
+import json
 
 from printer import info as print
-import bili_statistics
-from .bili_danmu import WsDanmuClient
-from tasks.guard_raffle_handler import GuardRafflJoinTask
-from tasks.storm_raffle_handler import StormRaffleJoinTask
-from . import raffle_handler
+from .bili_danmu_monitor import DanmuRaffleMonitor as Monitor
 
 
-class DanmuRaffleMonitor(WsDanmuClient):
+class DanmuRaffleMonitor(Monitor):
+    online_struct = Struct('!I')
+
     def __init__(
-            self, room_id: int, area_id: int, loop=None):
-        super().__init__(room_id, area_id, loop)
+            self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.online = -1
 
-    def handle_danmu(self, data: dict):
-        cmd = data['cmd']
-        if cmd == 'PREPARING':
-            print(f'{self._area_id}号数据连接房间下播({self._room_id})')
-            self.pause()
+    async def _prepare_client(self):
+        self.online = -1
+
+    async def _read_one(self) -> bool:
+        header = await self._conn.read_bytes(16)
+        # 本函数对bytes进行相关操作，不特别声明，均为bytes
+        if header is None:
             return False
 
-        if cmd == 'SPECIAL_GIFT':
-            if 'data' in data and '39' in data['data'] and data['data']['39']['action'] == 'start':
-                print(f'{self._area_id}号数据连接检测到{self._room_id:^9}的节奏风暴')
-                raffle_handler.exec_at_once(StormRaffleJoinTask, self._room_id, data['data']['39']['id'])
-                bili_statistics.add2pushed_raffles('节奏风暴', broadcast_type=2)
+        # 每片data都分为header和body，data和data可能粘连
+        # data_l == header_l && next_data_l == next_header_l
+        # ||header_l...header_r|body_l...body_r||next_data_l...
+        tuple_header = self.header_struct.unpack_from(header)
+        len_data, len_header, _, opt, _ = tuple_header
 
-        elif cmd == 'NOTICE_MSG':
-            msg_type = data['msg_type']
-            real_roomid = data['real_roomid']
-            msg_common = data['msg_common'].replace(' ', '')
-            msg_common = msg_common.replace('”', '')
-            msg_common = msg_common.replace('“', '')
-            if msg_type == 3:
-                raffle_name = msg_common.split('开通了')[-1][:2]
-                if raffle_name != '总督':
-                    print(f'{self._area_id}号数据连接检测到{real_roomid:^9}的提督/舰长（API0）')
-                    raffle_handler.push2queue(GuardRafflJoinTask, real_roomid)
-                    bili_statistics.add2pushed_raffles('提督/舰长（API0）', broadcast_type=2)
-        elif cmd == 'GUARD_MSG':
-            if 'buy_type' in data and data['buy_type'] != 1:
-                print(f'{self._area_id}号数据连接检测到{self._room_id:^9}的提督/舰长（API1）')
-                raffle_handler.push2queue(GuardRafflJoinTask, self._room_id)
-                bili_statistics.add2pushed_raffles('提督/舰长（API1）', broadcast_type=2)
-        elif cmd == "USER_TOAST_MSG":
-            if data['data']['guard_level'] != 1:
-                print(f'{self._area_id}号数据连接检测到{self._room_id:^9}的提督/舰长（API2）')
-                raffle_handler.push2queue(GuardRafflJoinTask, self._room_id)
-                bili_statistics.add2pushed_raffles('提督/舰长（API2）', broadcast_type=2)
-        elif cmd == "GUARD_BUY":
-            if data['data']['guard_level'] != 1:
-                print(f'{self._area_id}号数据连接检测到{self._room_id:^9}的提督/舰长（API3）')
-                raffle_handler.push2queue(GuardRafflJoinTask, self._room_id)
-                bili_statistics.add2pushed_raffles('提督/舰长（API3）', broadcast_type=2)
+        len_body = len_data - len_header
+        body = await self._conn.read_bytes(len_body)
+        # 本函数对bytes进行相关操作，不特别声明，均为bytes
+        if body is None:
+            return False
 
+        # 人气值(或者在线人数或者类似)以及心跳
+        if opt == 3:
+            online, = self.online_struct.unpack(body)
+            if self.online == -1:
+                self.online = max(online, 5)
+            elif self.online < online:
+                self.online = online
+            else:
+                self.online = online * 0.35 + self.online * 0.65  # 延迟操作
+            if self.online <= 1.1:
+                print(f'{self._area_id}号数据连接房间下播({self._room_id},{online}, {self.online})')
+                self.pause()
+                return False
+        # cmd
+        elif opt == 5:
+            if not self.handle_danmu(json.loads(body.decode('utf-8'))):
+                return False
+        # 握手确认
+        elif opt == 8:
+            print(f'{self._area_id}号弹幕监控进入房间（{self._room_id}）')
+        else:
+            print(body)
+            return False
         return True
