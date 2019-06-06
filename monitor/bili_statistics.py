@@ -17,6 +17,7 @@ class BiliStatistics:
         self.rooms = 0
         # 用于限制每天用户最多某个任务的最大参与次数
         self.tasks_records = {}  # {use0: {task0: 1, task1: 2}, user1: {task1: 9}}
+        self.max_room_num = -1
 
     def init(self, area_num: int, area_duplicated: bool):
         self.area_num = area_num
@@ -30,6 +31,8 @@ class BiliStatistics:
             else:
                 print(f'{v:^5.2f} X {k}')
         print('当前活跃房间数目：', self.rooms)
+        print()
+        print('MAX房间数目', self.max_room_num)
         print()
         
         if user_id == -2:
@@ -148,3 +151,7 @@ def rooms(num: int):
 
 def start_new_day():
     var_bili_statistics.start_new_day()
+
+
+def max_room_num(n: int):
+    var_bili_statistics.max_room_num = n
