@@ -3,6 +3,7 @@ import bili_statistics
 from .bili_danmu import WsDanmuClient
 from tasks.guard_raffle_handler import GuardRafflJoinTask
 from tasks.storm_raffle_handler import StormRaffleJoinTask
+from tasks.pk_raffle_handler import PkRaffleJoinTask
 from . import raffle_handler
 
 
@@ -43,5 +44,9 @@ class DanmuRaffleMonitor(WsDanmuClient):
                 print(f'{self._area_id}号数据连接检测到{self._room_id:^9}的提督/舰长（API3）')
                 raffle_handler.push2queue(GuardRafflJoinTask, self._room_id)
                 bili_statistics.add2pushed_raffles('提督/舰长（API3）', broadcast_type=2)
+        elif cmd == 'PK_LOTTERY_START':
+            print(f'{self._area_id}号数据连接检测到{self._room_id:^9}的PK大乱斗')
+            raffle_handler.exec_at_once(PkRaffleJoinTask, self._room_id, data['data']['pk_id'])
+            bili_statistics.add2pushed_raffles('PK大乱斗', broadcast_type=2)
 
         return True

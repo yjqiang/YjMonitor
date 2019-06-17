@@ -44,7 +44,7 @@ END = dict_ctrl['other_control']['END']
 bili_statistics.init(area_num=1, area_duplicated=False)
 tasks.utils.init(
     key=admin_privkey,
-    name=f'{START}-{END}V6.0b5',
+    name=f'{START}-{END}V6.1b0',
     url=dict_ctrl['other_control']['post_office'])
 
 

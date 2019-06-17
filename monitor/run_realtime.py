@@ -45,7 +45,7 @@ other_control = dict_ctrl['other_control']
 bili_statistics.init(area_num=1, area_duplicated=False)
 tasks.utils.init(
     key=admin_privkey,
-    name=f'REALTIMEV6.0b8',
+    name=f'REALTIMEV6.1b0',
     url=dict_ctrl['other_control']['post_office'])
 
 
