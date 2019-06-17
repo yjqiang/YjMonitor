@@ -10,6 +10,7 @@ import sys
 import signal
 import base64
 import threading
+import socket
 
 import rsa
 from aiohttp import web
@@ -203,6 +204,11 @@ app = web.Application()
 setup(app)
 app.router.add_route('GET', '/check', check_handler)
 app.router.add_route('POST', '/add_new_roomids', add_new_roomids_handler)
+
+with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+    s.connect(("114.114.114.114", 80))
+    print('本机 IP 为', s.getsockname()[0])
+
 web.run_app(app, port=9001)
 loop.run_forever()
 if console_thread is not None:
