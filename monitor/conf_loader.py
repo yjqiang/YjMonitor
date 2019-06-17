@@ -12,6 +12,7 @@ class ConfLoader:
         self.file_ctrl = f'{path_conf}/ctrl.toml'
         self.file_roomid = f'{path_conf}/roomid.toml'
         self.key_path = f'{root_path}/key/admin_privkey.pem'
+        self.admin_pubkey_path = f'{root_path}/key/admin_pubkey.pem'
         
     @staticmethod
     def toml_load(path):
@@ -45,6 +46,11 @@ class ConfLoader:
         with open(self.key_path, 'rb') as f:
             admin_privkey = rsa.PrivateKey.load_pkcs1(f.read())
         return admin_privkey
+
+    def read_pubkey(self):
+        with open(self.admin_pubkey_path, 'rb') as f:
+            admin_pubkey = rsa.PublicKey.load_pkcs1(f.read())
+        return admin_pubkey
         
                 
 var = ConfLoader()
@@ -68,6 +74,10 @@ def read_ctrl():
 
 def read_key():
     return var.read_key()
+
+
+def read_pubkey():
+    return var.read_pubkey()
 
 
 def read_roomid():

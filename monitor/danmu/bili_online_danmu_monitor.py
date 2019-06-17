@@ -2,9 +2,13 @@
 """
 from struct import Struct
 import json
+import asyncio
 
 from printer import info as print
 from .bili_danmu_monitor import DanmuRaffleMonitor as Monitor
+
+
+lock = asyncio.Semaphore(10)
 
 
 class DanmuRaffleMonitor(Monitor):
@@ -14,6 +18,10 @@ class DanmuRaffleMonitor(Monitor):
             self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.online = -1
+
+    async def _open(self):
+        async with lock:
+            return await super()._open()
 
     async def _prepare_client(self):
         self.online = -1
