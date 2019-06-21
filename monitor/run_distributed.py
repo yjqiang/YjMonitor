@@ -29,7 +29,7 @@ from tasks.login import LoginTask
 import tasks.utils
 
 
-MAX = 3300
+MAX = 3500
 loop = asyncio.get_event_loop()
 
 dict_user = conf_loader.read_user()
@@ -50,7 +50,7 @@ other_control = dict_ctrl['other_control']
 bili_statistics.init(area_num=1, area_duplicated=False)
 tasks.utils.init(
     key=admin_privkey,
-    name=f'RDISTRIBUTEDV1.0b2',
+    name=f'RDISTRIBUTEDV1.0b3',
     url=dict_ctrl['other_control']['post_office'])
 
 
