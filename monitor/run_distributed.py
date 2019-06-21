@@ -50,7 +50,7 @@ other_control = dict_ctrl['other_control']
 bili_statistics.init(area_num=1, area_duplicated=False)
 tasks.utils.init(
     key=admin_privkey,
-    name=f'RDISTRIBUTEDV1.0b1',
+    name=f'RDISTRIBUTEDV1.0b2',
     url=dict_ctrl['other_control']['post_office'])
 
 
@@ -107,7 +107,7 @@ class MonitorsCtrlCenter:
                     err.append(new_roomid)
             if err:
                 self.errs.append({'time': utils.curr_time(), 'err_new_roomids': err})
-            err = err[:20]
+                self.errs = err[-20:]
 
             if set_unique_new_rooms:
                 return len(set_unique_new_rooms) / 100 * 1.2 + 5
