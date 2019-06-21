@@ -1,4 +1,4 @@
-# monitor 自定义 server 作为中转模式
+# monitor 子监控
 ## 监控弹幕房间
 1. conf/ctrl.toml 中的 `post_office` 定义了 server 的服务器地址（方法是直接 POST，这是 server 自定义中转服务器模式）；`START` 与 `END` 控制监控房间的范围。
 1. key 文件夹内只需要 admin_privkey.pem 即可，为了防止恶意推送，这个 key 用于验证推送者身份的正确性。

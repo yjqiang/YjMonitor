@@ -1,4 +1,4 @@
-server部分（转发 monitor 发送的抽奖信息）
+server 部分（转发子监控发送的抽奖信息）
 -------------
 1. run.py 负责运行。
 1. db 负责存储与验证链接 key。key 在服务器端产生，保存特殊 hash 用于验证客户端的 tcp 连接请求。server 收到产生 key 的请求后同时会把原始的 key 加密之后返回到发出该请求(req_post_raffle.py)的客户端。
