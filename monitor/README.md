@@ -8,10 +8,6 @@
 1. conf/ctrl.toml 中的 `post_office` 定义了 server 的服务器地址（方法是直接 POST，这是 server 自定义中转服务器模式）；`yjmonitor_tcp_addr` 和 `yjmonitor_tcp_key` 需要填写好，用来去除重复推送。
 1. key 文件夹内只需要 admin_privkey.pem 即可，为了防止恶意推送，这个 key 用于验证推送者身份的正确性。
 1. 运行 `run_polling.py`。
-## 实时获取更新（几乎实时）
-1. conf/ctrl.toml 中的 `post_office` 定义了 server 的服务器地址（方法是直接 POST，这是 server 自定义中转服务器模式）。
-1. key 文件夹内只需要 admin_privkey.pem 即可，为了防止恶意推送，这个 key 用于验证推送者身份的正确性。
-1. 运行 `run_realtime.py`。
 ## 分布式部分（几乎实时，其实不是分布式，就是起了个高大上的名字）
 1. conf/ctrl.toml 中的 `post_office` 定义了 server 的服务器地址（方法是直接 POST，这是 server 自定义中转服务器模式）。
 1. key 文件夹内需要 admin_privkey.pem 和 admin_pubkey.pem，admin_privkey 用于验证推送者身份的正确性，admin_pubkey 用于中心服务器身份验证。
