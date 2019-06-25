@@ -17,14 +17,29 @@ class DanmuRaffleMonitor(Monitor):
     def __init__(
             self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.online = -1
+        self.online_watchers_num = -1
+        self.is_online = True
 
     async def _open(self):
         async with lock:
             return await super()._open()
 
     async def _prepare_client(self):
-        self.online = -1
+        self.online_watchers_num = -1
+        self.is_online = True
+
+    def handle_danmu(self, data: dict):
+        cmd = data['cmd']
+
+        if cmd == 'PREPARING':
+            print(f'{self._area_id}号数据连接房间PREPARING({self._room_id})')
+            self.is_online = False
+            return True
+        elif cmd == 'LIVE':
+            # print(f'{self._area_id}号数据连接房间开播LIVE({self._room_id})')
+            self.is_online = True
+            return True
+        return super().handle_danmu(data)
 
     async def _read_one(self) -> bool:
         header = await self._conn.read_bytes(16)
@@ -46,15 +61,16 @@ class DanmuRaffleMonitor(Monitor):
 
         # 人气值(或者在线人数或者类似)以及心跳
         if opt == 3:
-            online, = self.online_struct.unpack(body)
-            if self.online == -1:
-                self.online = max(online, 5)
-            elif self.online < online:
-                self.online = online
+            online_watchers_num, = self.online_struct.unpack(body)
+            if self.online_watchers_num == -1:
+                self.online_watchers_num = max(online_watchers_num, 5)
+            elif online_watchers_num > self.online_watchers_num:
+                self.online_watchers_num = online_watchers_num
             else:
-                self.online = online * 0.35 + self.online * 0.65  # 延迟操作
-            if self.online <= 1.1:
-                print(f'{self._area_id}号数据连接房间下播({self._room_id},{online}, {self.online})')
+                self.online_watchers_num = online_watchers_num * 0.35 + self.online_watchers_num * 0.65  # 延迟操作
+
+            if self.online_watchers_num <= 2.1 and not self.is_online:  # 房间下播且人数很少的时候
+                print(f'{self._area_id}号数据连接房间下播({self._room_id},{online_watchers_num}, {self.online_watchers_num})')
                 self.pause()
                 return False
         # cmd

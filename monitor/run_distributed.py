@@ -14,6 +14,7 @@ import socket
 
 import rsa
 from aiohttp import web
+import schedule
 from aiojobs.aiohttp import atomic, setup
 
 import utils
@@ -29,7 +30,7 @@ from tasks.login import LoginTask
 import tasks.utils
 
 
-MAX = 3500
+MAX = 3000
 loop = asyncio.get_event_loop()
 
 dict_user = conf_loader.read_user()
@@ -50,7 +51,7 @@ other_control = dict_ctrl['other_control']
 bili_statistics.init(area_num=1, area_duplicated=False)
 tasks.utils.init(
     key=admin_privkey,
-    name=f'RDISTRIBUTEDV1.0b3',
+    name=f'RDISTRIBUTEDV1.1b0',
     url=dict_ctrl['other_control']['post_office'])
 
 
@@ -69,6 +70,19 @@ class MonitorsCtrlCenter:
             self.loop.create_task(monitor.run())
 
         self.errs = []
+
+    def clean_rooms(self):
+        print('CLEANING ROOMS')
+        for monitor in self.monitors:
+            monitor.pause()
+
+    async def run(self):
+        schedule.every().day.at('05:30').do(self.clean_rooms)
+        schedule.every().day.at('15:30').do(self.clean_rooms)
+        await asyncio.sleep(120)
+        while True:
+            await asyncio.sleep(schedule.idle_seconds() + 1)
+            schedule.run_pending()
 
     def get_roomids_monitored(self) -> List[int]:
         roomids_monitored = []
@@ -199,6 +213,7 @@ else:
     console_thread = None
 
 loop.create_task(raffle_handler.run())
+loop.create_task(monitors_ctrl_center.run())
 
 app = web.Application()
 setup(app)
