@@ -38,8 +38,8 @@ class UtilsTask:
                 room_id = int(room['roomid'])
                 if room_id and room_id not in exceptions:
                     rooms.append(room_id)
-                    if len(rooms) >= rooms_num:
-                        break
+            if len(rooms) >= rooms_num:
+                break
             await asyncio.sleep(0.15)
         print(f'{url}截止结束页（第{page}页），获取{len(rooms)}个房间(可能重复)')
 
