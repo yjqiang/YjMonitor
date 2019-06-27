@@ -5,7 +5,7 @@ import printer
 from exceptions import LogoutError
 from json_rsp_ctrl import Ctrl, JsonRspType, DEFAULT_CTRL, TMP_DEFAULT_CTRL
 
-sem = asyncio.Semaphore(2)
+sem = asyncio.Semaphore(3)
 
 
 class WebSession:

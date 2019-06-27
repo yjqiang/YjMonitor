@@ -19,9 +19,13 @@ class UtilsTask:
         return rooms
 
     @staticmethod
-    async def fetch_rooms_from_bili(user, url):
+    async def fetch_rooms_from_bili(user, url, rooms_num, exceptions):
         rooms = []
-        for page in range(1, 30):
+        rooms_num += 250  # 可能有重复，所以加入冗余
+        page = None
+        for page in range(1, 60 + 1):
+            if page == 41:
+                await asyncio.sleep(4)
             if not (page % 20):
                 print(f'{url}截止第{page}页，获取{len(rooms)}个房间(可能重复)')
 
@@ -29,11 +33,15 @@ class UtilsTask:
             data = json_rsp['data']
 
             if not data:
-                print(f'{url}截止结束页（第{page}页），获取{len(rooms)}个房间(可能重复)')
                 break
             for room in data:
-                rooms.append(int(room['roomid']))
+                room_id = int(room['roomid'])
+                if room_id and room_id not in exceptions:
+                    rooms.append(room_id)
+                    if len(rooms) >= rooms_num:
+                        break
             await asyncio.sleep(0.15)
+        print(f'{url}截止结束页（第{page}页），获取{len(rooms)}个房间(可能重复)')
 
         print('去重之前', len(rooms))
         unique_rooms = []

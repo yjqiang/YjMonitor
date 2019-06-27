@@ -1,4 +1,5 @@
 # 不具有任何意义,仅仅是常见func
+from json_rsp_ctrl import ZERO_ONLY_CTRL
 
 
 class UtilsReq:
@@ -10,7 +11,7 @@ class UtilsReq:
 
     @staticmethod
     async def fetch_rooms_from_bili(user, url, page_id):
-        json_rsp = await user.other_session.request_json('GET', f'{url}{page_id}')
+        json_rsp = await user.other_session.request_json('GET', f'{url}{page_id}', ctrl=ZERO_ONLY_CTRL)
         return json_rsp
 
     @staticmethod

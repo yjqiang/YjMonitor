@@ -42,7 +42,7 @@ END = dict_ctrl['other_control']['END']
 bili_statistics.init(area_num=1, area_duplicated=False)
 tasks.utils.init(
     key=admin_privkey,
-    name=f'{START}-{END}POLLINGV6.0b6',
+    name=f'{START}-{END}POLLINGV6.0b7',
     url=dict_ctrl['other_control']['post_office'])
 
 
@@ -54,7 +54,7 @@ async def fetch_roomid_periodic():
         url=yjmonitor_tcp_addr,
         area_id=0)
     asyncio.create_task(monitor.run())
-    await PollRoomChecker().run(START, END)
+    await PollRoomChecker(START, END).run()
 
 
 # 初始化控制台
