@@ -52,6 +52,35 @@ class UtilsTask:
         return unique_rooms
 
     @staticmethod
+    async def fetch_rooms_from_rank(user, url, pages_num):
+        print(url, pages_num)
+        rooms = []
+        page = None
+        for page in range(0, pages_num):
+            if page == 51:
+                await asyncio.sleep(3)
+            if not (page % 20):
+                print(f'{url}截止第{page}页，获取{len(rooms)}个房间(可能重复)')
+
+            json_rsp = await user.req_s(UtilsReq.fetch_rooms_from_bili, user, url, page)
+            rooms_list = json_rsp['data']['list']
+
+            if not rooms_list:
+                break
+            for room in rooms_list:
+                rooms.append(int(room['roomid']))
+            await asyncio.sleep(0.05)
+        print(f'{url}截止结束页（第{page}页），获取{len(rooms)}个房间(可能重复)')
+
+        print('去重之前', len(rooms))
+        unique_rooms = []
+        for room_id in rooms:
+            if room_id not in unique_rooms:
+                unique_rooms.append(room_id)
+        print('去重之后', len(unique_rooms))
+        return unique_rooms
+
+    @staticmethod
     async def send2yj_monitor(user, *args):
         await send2yj_monitor(user, *args)
 
