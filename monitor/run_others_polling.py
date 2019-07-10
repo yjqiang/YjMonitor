@@ -42,7 +42,7 @@ END = 1250
 bili_statistics.init(area_num=1, area_duplicated=False)
 tasks.utils.init(
     key=admin_privkey,
-    name=f'{START}-{END}OTHERS_POLLINGV1.0b1',
+    name=f'{START}-{END}OTHERS_POLLINGV1.0.1b0',
     url=dict_ctrl['other_control']['post_office'])
 
 
