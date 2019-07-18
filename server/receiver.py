@@ -2,7 +2,7 @@ import asyncio
 import struct
 import json
 from time import time
-from typing import List, Optional
+from typing import List, Any
 
 import attr
 from aiohttp import WSMsgType
@@ -17,7 +17,7 @@ class ReceiverConn:
     async def close(self) -> bool:
         return True
 
-    async def recv_json(self) -> Optional[dict]:
+    async def recv_json(self) -> Any:
         return None
 
 
@@ -39,7 +39,7 @@ class WsReceiverConn(ReceiverConn):
             pass
         return True
 
-    async def recv_json(self) -> Optional[dict]:
+    async def recv_json(self) -> Any:
         try:
             msg = await self._conn.receive()
             if msg.type == WSMsgType.TEXT:
@@ -74,7 +74,7 @@ class TcpReceiverConn(ReceiverConn):
             pass
         return True
 
-    async def recv_json(self) -> Optional[dict]:
+    async def recv_json(self) -> Any:
         try:
             while True:
                 bytes_data = await asyncio.wait_for(self._reader.readexactly(4), timeout=40)
@@ -146,7 +146,7 @@ class BroadCaster:  # receiver的广播、统计等
                     tasks = [asyncio.ensure_future(self._close(user)) for user in deprecated_observers]
                     if tasks:
                         await asyncio.wait(tasks)
-            info(f'已推送抽奖{json_data}')
+        info(f'已推送抽奖{json_data}')
 
     async def broadcast_close(self):
         if self._receivers:

@@ -106,10 +106,9 @@ def is_key_addable(key_index: str, key_value: str):  # md5不同，orig_key肯�
     return not bool(cursor.fetchone())
 
 
-def select_and_check():
+def clean_safely():
     with conn:
         conn.execute('DELETE FROM keys WHERE key_expired_time<? and key_expired_time!=0', (utils.curr_time(),))
-    return keys_table.select_all()
 
 
 def select_by_primary_key(key_index):
