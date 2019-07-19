@@ -3,10 +3,10 @@ from typing import Optional
 from receiver import TcpReceiverConn
 
 
-class TcpReqError(Exception):  # 建立连接之后，ws的错误情况
+class TcpReqError(Exception):
     RSP_SUGGESTED = {}
 
-    def __init__(self, conn: Optional[TcpReceiverConn], msg: Optional[str] = None, others=None):
+    def __init__(self, conn: TcpReceiverConn, msg: Optional[str] = None, others=None):
         self.conn = conn
         self.msg = msg
         self.others = others

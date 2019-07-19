@@ -12,7 +12,9 @@ class Poster:  # 推送人是一个poster
     user_latest_post_time = attr.ib(validator=attr.validators.instance_of(int))
 
 
-class PostOffice:  # 管理posters的状态
+class Posters:  # 管理posters的状态
+    __slots__ = ('_posters',)
+
     def __init__(self):
         self._posters: Dict[str, Poster] = {}
 
@@ -24,9 +26,14 @@ class PostOffice:  # 管理posters的状态
             self._posters[name] = poster
 
     def count(self) -> list:
+        return [(key, poster.user_latest_post_time) for key, poster in
+                sorted(self._posters.items(), key=itemgetter(0))]
+
+    def clean_safely(self) -> None:
         int_curr_time = curr_time()
         # 过滤删除过于久远的
         self._posters = {key: poster for key, poster in self._posters.items()
-                         if poster.user_latest_post_time + 12*3600 > int_curr_time}
-        return [(key, poster.user_latest_post_time) for key, poster in
-                sorted(self._posters.items(), key=itemgetter(0))]
+                         if poster.user_latest_post_time + 12 * 3600 > int_curr_time}
+
+
+posters = Posters()

@@ -1,13 +1,12 @@
 import asyncio
 import struct
 import json
-from time import time
 from typing import List, Any
 
 import attr
 from aiohttp import WSMsgType
 
-from printer import info
+from printer import info as print
 
 
 class ReceiverConn:
@@ -95,10 +94,11 @@ class Receiver:  # ws的每个用户都是一个receiver
     user_conn = attr.ib(validator=attr.validators.instance_of(ReceiverConn))
     user_key_index = attr.ib(validator=attr.validators.instance_of(str))
     user_status = attr.ib(default=True, validator=attr.validators.instance_of(bool))
-    user_join_time = attr.ib(default=int(time()), validator=attr.validators.instance_of(int))
 
 
-class BroadCaster:  # receiver的广播、统计等
+class Receivers:  # receiver的广播、统计等
+    __slots__ = ('_receivers',)
+
     def __init__(self):
         self._receivers: List[Receiver] = []
 
@@ -106,10 +106,12 @@ class BroadCaster:  # receiver的广播、统计等
         self._receivers.append(user)
 
     def remove(self, user: Receiver):
-        if user in self._receivers:
+        try:
             self._receivers.remove(user)
+            print(f'用户{user.user_key_index[:5]}删除')
             return True
-        return False
+        except ValueError:
+            return False
 
     def num_observers(self):
         return len(self._receivers)
@@ -134,7 +136,7 @@ class BroadCaster:  # receiver的广播、统计等
                      for user in self._receivers if user.user_status]
             if tasks:
                 if not all(await asyncio.gather(*tasks)):
-                    info('存在发送失败的用户，即将清理')
+                    print('存在发送失败的用户，即将清理')
                     new_observers = []
                     deprecated_observers = []
                     for user in self._receivers:
@@ -146,7 +148,7 @@ class BroadCaster:  # receiver的广播、统计等
                     tasks = [asyncio.ensure_future(self._close(user)) for user in deprecated_observers]
                     if tasks:
                         await asyncio.wait(tasks)
-        info(f'已推送抽奖{json_data}')
+        print(f'已推送抽奖{json_data}')
 
     async def broadcast_close(self):
         if self._receivers:
@@ -154,17 +156,19 @@ class BroadCaster:  # receiver的广播、统计等
             await asyncio.wait(tasks)
             self._receivers.clear()
 
-    def can_pass_max_users_test(self, key_index: str, key_max_users: int):
+    def can_pass_max_users_test(self, key_index: str, key_max_users: int) -> bool:
         num_same_key = 0
         for user in self._receivers:
-            if user.user_key_index == key_index:
+            if user.user_status and user.user_key_index == key_index:
                 num_same_key += 1
-        if num_same_key < key_max_users:
-            return True
-        return False
+        return num_same_key + 1 <= key_max_users  # +1 是因为即将加入新的用户，只有当新用户加入后，仍然符合，才算通过
 
-    def count(self):
-        dict_count = {}  # index: count
+    def count_user_by_key(self, key_index: str) -> int:
+        num_same_key = 0
         for user in self._receivers:
-            dict_count[user.user_key_index] = dict_count.get(user.user_key_index, 0) + 1
-        return {key[:5]: value for key, value in dict_count.items()}
+            if user.user_status and user.user_key_index == key_index:
+                num_same_key += 1
+        return num_same_key
+
+
+receivers = Receivers()

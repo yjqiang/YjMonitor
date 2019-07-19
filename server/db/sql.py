@@ -1,5 +1,4 @@
 import sqlite3
-import hashlib
 from os import path
 from typing import Optional
 
