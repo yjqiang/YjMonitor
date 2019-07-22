@@ -9,7 +9,7 @@ from . import raffle_handler
 
 class DanmuRaffleMonitor(WsDanmuClient):
     def handle_danmu(self, data: dict):
-        cmd = data['cmd']
+        cmd: str = data['cmd']
 
         if cmd == 'SPECIAL_GIFT':
             if 'data' in data and '39' in data['data'] and data['data']['39']['action'] == 'start':
@@ -34,7 +34,7 @@ class DanmuRaffleMonitor(WsDanmuClient):
                 print(f'{self._area_id}号数据连接检测到{self._room_id:^9}的提督/舰长（API1）')
                 raffle_handler.push2queue(GuardRafflJoinTask, self._room_id)
                 bili_statistics.add2pushed_raffles('提督/舰长（API1）', broadcast_type=2)
-        elif cmd == "USER_TOAST_MSG":
+        elif cmd == "USER_TOAST_MSG":  # 这个 api 有明显的瞎 jb 乱报现象，即报了，但没有
             if data['data']['guard_level'] != 1:
                 print(f'{self._area_id}号数据连接检测到{self._room_id:^9}的提督/舰长（API2）')
                 raffle_handler.push2queue(GuardRafflJoinTask, self._room_id)
@@ -48,5 +48,10 @@ class DanmuRaffleMonitor(WsDanmuClient):
             print(f'{self._area_id}号数据连接检测到{self._room_id:^9}的PK大乱斗')
             raffle_handler.exec_at_once(PkRaffleJoinTask, self._room_id, data['data']['pk_id'])
             bili_statistics.add2pushed_raffles('PK大乱斗', broadcast_type=2)
+        elif cmd == 'GUARD_LOTTERY_START':
+            if data['data']['privilege_type'] != 1:
+                print(f'{self._area_id}号数据连接检测到{self._room_id:^9}的提督/舰长（API4）')
+                raffle_handler.push2queue(GuardRafflJoinTask, self._room_id)
+                bili_statistics.add2pushed_raffles('提督/舰长（API4）', broadcast_type=2)
 
         return True
