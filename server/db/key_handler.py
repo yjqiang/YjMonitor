@@ -46,12 +46,12 @@ class KeyHandler:
             hashed_key: str = self._ph.hash(orig_key)
             naive_hashed_key: str = utils.naive_hash(orig_key)
             if sql.is_key_addable(key_index=naive_hashed_key, key_value=hashed_key):
-                curr_time = utils.curr_time()
-                expired_time = 0 if not available_days else curr_time + available_days*3600*24
+                key_created_time = 0
+                expired_time = 0 if not available_days else key_created_time + available_days*3600*24
                 sql.insert_element(sql.Key(
                     key_index=naive_hashed_key,
                     key_value=hashed_key,
-                    key_created_time=curr_time,
+                    key_created_time=key_created_time,
                     key_max_users=max_users,
                     key_expired_time=expired_time)
                 )
@@ -61,11 +61,13 @@ class KeyHandler:
     def verify_key(self, orig_key: str) -> str:
         key = sql.is_key_verified(orig_key)
         if key is not None:
-            if self._receivers.can_pass_max_users_test(key.key_index, key.key_max_users):
-                return key.key_index
-            else:
-                # print(f'KEY({key.key_index[:5]}***...)用户过多')
-                raise KeyCheckMaxError()
+            key_index = key.key_index
+            if not key.key_created_time:
+                print(f'正在激活 {key_index[:5]}***')
+                sql.activate(key_index)  # 只更新 creat 和 expire 时间,后面的返回不需要这么多东西，这里就不需要刷新了
+            if self._receivers.can_pass_max_users_test(key_index, key.key_max_users):
+                return key_index
+            raise KeyCheckMaxError()
         else:
             raise KeyCheckVerificationError()
 

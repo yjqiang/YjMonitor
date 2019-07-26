@@ -17,7 +17,7 @@ password_hasher = PasswordHasher()
 class Key:
     key_index = attr.ib(converter=str)  # 对真正的key（password）进行md5哈希，作为index
     key_value = attr.ib(converter=str)  # 真正的key（password）经过argon2处理后的数据
-    key_created_time = attr.ib(converter=int)
+    key_created_time = attr.ib(converter=int)  # 当 created_time 为 0 时，expire_time 就是有效时间长度；非零就是时间点
     key_max_users = attr.ib(default=3, convert=int)
     key_expired_time = attr.ib(default=0, convert=int)
 
@@ -67,9 +67,7 @@ class KeysTable:
     def select_by_primary_key(self, key_index):
         cursor = self.conn.execute('SELECT * FROM keys WHERE key_index=?', (str(key_index),))
         result = cursor.fetchone()
-        if result is None:
-            return None
-        return self.as_key(result)
+        return None if result is None else self.as_key(result)
 
     def del_by_primary_key(self, key_index):
         with self.conn:
@@ -90,7 +88,8 @@ def select_all():
 def is_key_verified(orig_key: str) -> Optional[Key]:
     key_index = utils.naive_hash(orig_key)
     key = keys_table.select_by_primary_key(key_index)
-    if key is None:
+    if key is None or \
+            (key.key_created_time != 0 and key.key_expired_time < utils.curr_time() and key.key_expired_time != 0):
         return None
     try:
         password_hasher.verify(key.key_value, orig_key)
@@ -107,7 +106,20 @@ def is_key_addable(key_index: str, key_value: str):  # md5不同，orig_key肯�
 
 def clean_safely():
     with conn:
-        conn.execute('DELETE FROM keys WHERE key_expired_time<? and key_expired_time!=0', (utils.curr_time(),))
+        conn.execute(
+            'DELETE FROM keys WHERE key_created_time!=0 and key_expired_time<? and key_expired_time!=0',
+            (utils.curr_time(),))
+
+
+def activate(key_index: str):
+    curr_time = utils.curr_time()
+    # 永久就是 key_expired_time 为 0，否则是有效时间长度
+    with conn:
+        conn.execute(
+            'UPDATE keys SET key_created_time = ?, key_expired_time = CASE'
+            ' WHEN key_expired_time!=0 THEN ? + key_expired_time ELSE 0 END'
+            ' WHERE key_index=? and key_created_time=0',
+            (curr_time, curr_time, key_index))
 
 
 def select_by_primary_key(key_index):
