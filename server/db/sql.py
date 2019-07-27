@@ -1,16 +1,12 @@
 import sqlite3
 from os import path
-from typing import Optional
 
 import attr
-from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError
 
 import utils
 
 
 conn = sqlite3.connect(f'{path.dirname(path.realpath(__file__))}/data.db')
-password_hasher = PasswordHasher()
 
 
 @attr.s(slots=True, frozen=True)
@@ -18,8 +14,8 @@ class Key:
     key_index = attr.ib(converter=str)  # 对真正的key（password）进行md5哈希，作为index
     key_value = attr.ib(converter=str)  # 真正的key（password）经过argon2处理后的数据
     key_created_time = attr.ib(converter=int)  # 当 created_time 为 0 时，expire_time 就是有效时间长度；非零就是时间点
-    key_max_users = attr.ib(default=3, convert=int)
-    key_expired_time = attr.ib(default=0, convert=int)
+    key_max_users = attr.ib(convert=int)
+    key_expired_time = attr.ib(convert=int)
 
     def as_sql_values(self):
         key_index = str(self.key_index)
@@ -83,19 +79,6 @@ def insert_element(key: Key):
 
 def select_all():
     return keys_table.select_all()
-
-
-def is_key_verified(orig_key: str) -> Optional[Key]:
-    key_index = utils.naive_hash(orig_key)
-    key = keys_table.select_by_primary_key(key_index)
-    if key is None or \
-            (key.key_created_time != 0 and key.key_expired_time < utils.curr_time() and key.key_expired_time != 0):
-        return None
-    try:
-        password_hasher.verify(key.key_value, orig_key)
-    except VerifyMismatchError:
-        return None
-    return key
 
 
 def is_key_addable(key_index: str, key_value: str):  # md5不同，orig_key肯定不同

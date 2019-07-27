@@ -2,6 +2,7 @@ import random
 import string
 
 from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
 
 import utils
 from . import sql
@@ -59,17 +60,24 @@ class KeyHandler:
                 return orig_key
 
     def verify_key(self, orig_key: str) -> str:
-        key = sql.is_key_verified(orig_key)
-        if key is not None:
-            key_index = key.key_index
+        key_index = utils.naive_hash(orig_key)
+        key = sql.select_by_primary_key(key_index)
+
+        # 非空且未过期
+        if key is not None and \
+                not (key.key_created_time and key.key_expired_time < utils.curr_time() and key.key_expired_time):
+            try:
+                self._ph.verify(key.key_value, orig_key)
+            except VerifyMismatchError:
+                raise KeyCheckVerificationError()
+
             if not key.key_created_time:
                 print(f'正在激活 {key_index[:5]}***')
                 sql.activate(key_index)  # 只更新 creat 和 expire 时间,后面的返回不需要这么多东西，这里就不需要刷新了
             if self._receivers.can_pass_max_users_test(key_index, key.key_max_users):
                 return key_index
             raise KeyCheckMaxError()
-        else:
-            raise KeyCheckVerificationError()
+        raise KeyCheckVerificationError()
 
     def check_key_by_hashed_key(self, naive_hashed_key: str) -> str:
         return self.check_key(naive_hashed_key)
