@@ -59,7 +59,7 @@ class BroadCastHandler:
         except:
             raise json_req_exceptions.OtherError()
 
-        if 'verification' in json_data and 'data' in json_data:
+        if isinstance(json_data, dict) and 'verification' in json_data and 'data' in json_data:
             verification = json_data['verification']
             if isinstance(verification, dict) and 'signature' in verification and 'time' in verification:
                 try:
@@ -68,15 +68,12 @@ class BroadCastHandler:
                     verify_func(name=name, time=time, signature=verification['signature'])
 
                     data = json_data['data']
-                    if isinstance(data, dict) and isinstance(name, str):
+                    if isinstance(data, dict):
                         return name, data
-                    raise json_req_exceptions.DataError()
                 except RsaHandlerVerificationError:
                     raise json_req_exceptions.VerificationError()
                 except RsaHandlerTimeError:
                     raise json_req_exceptions.TimeError()
-                except json_req_exceptions.JsonReqError:
-                    raise
                 except:
                     raise json_req_exceptions.DataError()
         raise json_req_exceptions.DataError()
@@ -89,15 +86,15 @@ class BroadCastHandler:
             self._blacklist.refresh(addr)
             raise tcp_req_exception.BanError(conn)
 
-        print(f'准备处理来自 IP {addr}的 tcp 连接请求')
         json_data = await conn.recv_json()
 
-        if json_data is not None and 'data' in json_data:
+        if json_data is not None and isinstance(json_data, dict) and 'data' in json_data:
             data = json_data['data']
             if isinstance(data, dict) and 'key' in data:
                 try:
                     orig_key = str(data['key'])
                     key_index = self._key_handler.verify_key(orig_key)
+                    print(f'来自 IP {addr}的用户 {key_index[:5]} 成功验证身份')
                     return Receiver(user_conn=conn, user_key_index=key_index)
                 except KeyCheckMaxError:
                     print(f'IP {addr} 使用的 key 已连接用户过多')
@@ -133,7 +130,7 @@ class BroadCastHandler:
             'code': 0,
             'type': '',
             'data': {
-                'version': '0.2.0b2',
+                'version': '0.2.0b3',
                 'observers_num': f'当前用户共{self._receivers.num_observers()}',
                 'posters_count': self._posters.count(),
                 'search_results': search_results,
@@ -196,7 +193,6 @@ class BroadCastHandler:
 
         if await user.user_conn.send_json({'code': 0, 'type': 'entered', 'data': {}}):
             self._receivers.append(user)
-            print(f'用户{user.user_key_index[:5]}加入')
             while await user.user_conn.recv_json() is not None:
                 pass
             self._receivers.remove(user)
