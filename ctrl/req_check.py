@@ -7,10 +7,12 @@ import utils
 import global_var
 
 
+check_ip = ''
+clean_ip = ''
 name = 'bbbn'  # 用户名没必要改
 key = 'V_F<Nv)!WeK]irWY'  # 检测 key 是否存在以及相关信息
 
-with open(f'{global_var.KEY_PATH}/admin_privkey.pem', 'rb') as f:
+with open(f'{global_var.KEY_PATH}/super_admin_privkey.pem', 'rb') as f:
     admin_privkey = rsa.PrivateKey.load_pkcs1(f.read())
 
 
@@ -23,6 +25,12 @@ data = {}
 if key:
     naive_hashed_key = utils.naive_hash(key)
     data['naive_hashed_key'] = naive_hashed_key
+    
+if check_ip:
+    data['check_ip'] = check_ip
+    
+if clean_ip:
+    data['clean_ip'] = clean_ip
     
 data = {
     'code': 0,
