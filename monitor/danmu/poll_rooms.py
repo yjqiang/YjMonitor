@@ -51,7 +51,7 @@ class PollRoomChecker:
         print(f'POLL ROOMS 截取了{len(dyn_rooms)}个房间')
         for room_id in dyn_rooms:
             raffle_handler.exec_at_once(GuardRafflJoinTask, room_id, 1)
-            await asyncio.sleep(0.02)
+            await asyncio.sleep(0.03)
 
     async def run(self):
         while True:

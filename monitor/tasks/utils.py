@@ -40,7 +40,7 @@ class UtilsTask:
                     rooms.append(room_id)
             if len(rooms) >= rooms_num:
                 break
-            await asyncio.sleep(0.15)
+            await asyncio.sleep(0.05)
         print(f'{url}截止结束页（第{page}页），获取{len(rooms)}个房间(可能重复)')
 
         print('去重之前', len(rooms))
