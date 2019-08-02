@@ -156,13 +156,6 @@ class Receivers:  # receiver的广播、统计等
             await asyncio.wait(tasks)
             self._receivers.clear()
 
-    def can_pass_max_users_test(self, key_index: str, key_max_users: int) -> bool:
-        num_same_key = 0
-        for user in self._receivers:
-            if user.user_status and user.user_key_index == key_index:
-                num_same_key += 1
-        return num_same_key + 1 <= key_max_users  # +1 是因为即将加入新的用户，只有当新用户加入后，仍然符合，才算通过
-
     def count_user_by_key(self, key_index: str) -> int:
         num_same_key = 0
         for user in self._receivers:

@@ -74,7 +74,7 @@ class KeyHandler:
             if not key.key_created_time:
                 print(f'正在激活 {key_index[:5]}***')
                 sql.activate(key_index)  # 只更新 creat 和 expire 时间,后面的返回不需要这么多东西，这里就不需要刷新了
-            if self._receivers.can_pass_max_users_test(key_index, key.key_max_users):
+            if self._receivers.count_user_by_key(key.key_index) < key.key_max_users:  # 连接数量限制
                 return key_index
             raise KeyCheckMaxError()
         raise KeyCheckVerificationError()
