@@ -29,6 +29,8 @@ class DanmuRaffleMonitor(Monitor):
         self.is_online = True
 
     def handle_danmu(self, data: dict):
+        if data.get('scene_key') is not None:
+            data = data.get('msg')
         cmd = data['cmd']
 
         if cmd == 'PREPARING':

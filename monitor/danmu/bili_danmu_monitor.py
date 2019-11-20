@@ -9,6 +9,8 @@ from . import raffle_handler
 
 class DanmuRaffleMonitor(WsDanmuClient):
     def handle_danmu(self, data: dict):
+        if data.get('scene_key') is not None:
+            data = data.get('msg')
         cmd: str = data['cmd']
 
         if cmd == 'SPECIAL_GIFT':
