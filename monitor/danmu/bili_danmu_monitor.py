@@ -9,7 +9,13 @@ from . import raffle_handler
 
 class DanmuRaffleMonitor(WsDanmuClient):
     def handle_danmu(self, data: dict):
-        cmd: str = data['cmd']
+        if 'cmd' in data:
+            cmd = data['cmd']
+        elif 'msg' in data:
+            data = data['msg']
+            cmd = data['cmd']
+        else:
+            return True  # 预防未来sbb站
 
         if cmd == 'SPECIAL_GIFT':
             if 'data' in data and '39' in data['data'] and data['data']['39']['action'] == 'start':
