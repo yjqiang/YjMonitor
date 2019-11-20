@@ -5,3 +5,5 @@ aiohttp
 toml
 Pillow
 argon2-cffi
+aiojobs
+decorator
