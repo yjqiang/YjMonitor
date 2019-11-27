@@ -14,8 +14,8 @@ class Key:
     key_index = attr.ib(converter=str)  # 对真正的key（password）进行md5哈希，作为index
     key_value = attr.ib(converter=str)  # 真正的key（password）经过argon2处理后的数据
     key_created_time = attr.ib(converter=int)  # 当 created_time 为 0 时，expire_time 就是有效时间长度；非零就是时间点
-    key_max_users = attr.ib(convert=int)
-    key_expired_time = attr.ib(convert=int)
+    key_max_users = attr.ib(converter=int)
+    key_expired_time = attr.ib(converter=int)
 
     def as_sql_values(self):
         key_index = str(self.key_index)
