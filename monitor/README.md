@@ -1,14 +1,17 @@
 # monitor 子监控
 ## 监控弹幕房间
+1. 从服务器定时拉取房间，并且完全替换掉老房间。
 1. conf/ctrl.toml 中的 `post_office` 定义了 server 的服务器地址（方法是直接 POST，这是 server 自定义中转服务器模式）；`START` 与 `END` 控制监控房间的范围。
 1. key 文件夹内只需要 admin_privkey.pem 即可，为了防止恶意推送，这个 key 用于验证推送者身份的正确性。
 1. 由于python性能问题，推荐 4000 左右个房间/机器，需要几台机器协同一起监控，之后考虑golang（flag)。
 1. 运行 `run.py`。
 ## 补足部分（暴力轮询）
+1. 暴力轮询热门房间。
 1. conf/ctrl.toml 中的 `post_office` 定义了 server 的服务器地址（方法是直接 POST，这是 server 自定义中转服务器模式）；`yjmonitor_tcp_addr` 和 `yjmonitor_tcp_key` 需要填写好，用来去除重复推送。
 1. key 文件夹内只需要 admin_privkey.pem 即可，为了防止恶意推送，这个 key 用于验证推送者身份的正确性。
-1. 运行 `run_polling.py`。
+1. 运行 `run_poll0.py` 和 `run_poll1.py`。
 ## 分布式部分（几乎实时，其实不是分布式，就是起了个高大上的名字）
+1. 自己来实时推送那些正在直播的房间。
 1. conf/ctrl.toml 中的 `post_office` 定义了 server 的服务器地址（方法是直接 POST，这是 server 自定义中转服务器模式）。
 1. key 文件夹内需要 admin_privkey.pem 和 admin_pubkey.pem，admin_privkey 用于验证推送者身份的正确性，admin_pubkey 用于中心服务器身份验证。
 1. 需要公网 IP 的服务器（因为的代码写得比较 233）。
