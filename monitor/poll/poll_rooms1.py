@@ -5,8 +5,8 @@ from printer import info as print
 from tasks.utils import UtilsTask
 import conf_loader
 import notifier
-from tasks.guard_raffle_handler import GuardRafflJoinTask
-from . import raffle_handler
+from tasks.lotteries_raffle_handler import LotteriesRaffleJoinTask
+from danmu import raffle_handler
 
 
 class PollRoomChecker:
@@ -21,10 +21,13 @@ class PollRoomChecker:
         self.reset_max_rooms_num(self.end, -1)
 
     def reset_max_rooms_num(self, num: int, url_index: int):  # 大约的数据
-        base_url = 'http://api.live.bilibili.com'
+        base_url = 'https://api.live.bilibili.com'
 
         urls = [
+            # https://live.bilibili.com/all
             f'{base_url}/room/v1/Area/getListByAreaID?areaId=0&sort=online&pageSize={max(200, int(num/40))}&page=',
+
+
             f'{base_url}/room/v1/room/get_user_recommend?page_size=100&page=',
         ]
         if url_index == -1:
@@ -41,6 +44,7 @@ class PollRoomChecker:
             roomlists.append(await notifier.exec_func(
                 UtilsTask.fetch_rooms_from_bili, url, self.end, self.static_rooms))
         print(f'结束本轮刷新查看ONLINE房间')
+
         dyn_rooms = []
         for rooms in zip_longest(*roomlists):  # 这里是为了保持优先级
             for room in rooms:
@@ -50,7 +54,7 @@ class PollRoomChecker:
         dyn_rooms = dyn_rooms[self.start: self.end]
         print(f'POLL ROOMS 截取了{len(dyn_rooms)}个房间')
         for room_id in dyn_rooms:
-            raffle_handler.exec_at_once(GuardRafflJoinTask, room_id, 1)
+            raffle_handler.exec_at_once(LotteriesRaffleJoinTask, room_id, 1)
             await asyncio.sleep(0.035)
 
     async def run(self):

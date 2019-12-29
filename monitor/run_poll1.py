@@ -17,7 +17,7 @@ import tasks.utils
 # 弹幕
 from danmu import raffle_handler
 from danmu.yj_monitor import TcpYjMonitorClient
-from danmu.poll_other_rooms import PollOtherRoomChecker
+from poll.poll_rooms1 import PollRoomChecker
 
 
 loop = asyncio.get_event_loop()
@@ -29,6 +29,7 @@ admin_privkey = conf_loader.read_key()
 
 # user设置
 users = []
+# 有且仅有一个用户
 assert len(dict_user['users']) == 1
 for user_info in dict_user['users']:
     users.append(User(user_info, dict_bili))
@@ -37,12 +38,14 @@ notifier.init(users=users)
 loop.run_until_complete(notifier.exec_task(LoginTask))
 
 other_control = dict_ctrl['other_control']
+
 START = 0
 END = 1250
+
 bili_statistics.init(area_num=1, area_duplicated=False)
 tasks.utils.init(
     key=admin_privkey,
-    name=f'{START}-{END}OTHERS_POLLINGV1.0.1b0',
+    name=f'{START}-{END}POLL1V7.0.0b0',
     url=dict_ctrl['other_control']['post_office'])
 
 
@@ -53,8 +56,8 @@ async def fetch_roomid_periodic():
         key=yjmonitor_tcp_key,
         url=yjmonitor_tcp_addr,
         area_id=0)
-    loop.create_task(monitor.run())
-    await PollOtherRoomChecker(START, END).run()
+    asyncio.create_task(monitor.run())
+    await PollRoomChecker(START, END).run()
 
 
 # 初始化控制台

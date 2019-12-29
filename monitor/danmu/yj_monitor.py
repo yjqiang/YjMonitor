@@ -8,7 +8,7 @@ from printer import warn
 import bili_statistics
 from .client import Client
 from .conn import TcpConn
-from tasks.guard_raffle_handler import GuardYjLoadPollTask
+from tasks.lotteries_raffle_handler import LotteriesRaffleLoadTask
 from . import raffle_handler
 
 
@@ -84,6 +84,6 @@ class TcpYjMonitorClient(Client):
             raffle_id = data['raffle_id']
             raffle_roomid = data['room_id']
             print(f'{self._area_id}号弹幕监控检测到{raffle_roomid:^9}的大航海(id: {raffle_id})')
-            raffle_handler.exec_at_once(GuardYjLoadPollTask, raffle_roomid, raffle_id)
+            raffle_handler.exec_at_once(LotteriesRaffleLoadTask, raffle_roomid, raffle_id)
             bili_statistics.add2pushed_raffles('Yj协同大航海', 2)
         return True

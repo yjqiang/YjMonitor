@@ -1,19 +1,19 @@
 import bili_statistics
 from reqs.storm_raffle_handler import StormRaffleHandlerReq
 from tasks.utils import UtilsTask
-from .task_func_decorator import normal
-from .base_class import ForcedTask
+from .base_class import Forced, DontWait, Multi
 
 
-class StormRaffleJoinTask(ForcedTask):
+class StormRaffleJoinTask(Forced, DontWait, Multi):
     TASK_NAME = 'join_storm_raffle'
+
     # 为了速度，有时不用等room_id验证就参加,置room_id为0，is_normal_room自然会返回固定值true
     @staticmethod
-    async def check(user, room_id, raffle_id=None):
+    async def check(user, real_roomid, raffle_id=None):
         if raffle_id is not None:
             json_rsp = {'data': {'id': raffle_id}}
         else:
-            json_rsp = await user.req_s(StormRaffleHandlerReq.check, user, room_id)
+            json_rsp = await user.req_s(StormRaffleHandlerReq.check, user, real_roomid)
         next_step_settings = []
         data = json_rsp['data']
         if data:
@@ -22,7 +22,7 @@ class StormRaffleJoinTask(ForcedTask):
                 print('本次获取到的抽奖id为', raffle_id)
                 raffle_data = {
                     'raffle_id': raffle_id,
-                    'room_id': room_id,
+                    'room_id': real_roomid,
                     'raffle_type': 'STORM',
                     'end_time': 0
                 }
@@ -32,7 +32,6 @@ class StormRaffleJoinTask(ForcedTask):
         return next_step_settings
             
     @staticmethod
-    @normal
     async def work(user, raffle_data: dict):
-        bili_statistics.add2joined_raffles('飓风暴(合计)', user.id)
+        bili_statistics.add2joined_raffles(raffle_data['raffle_type'], user.id)
         await UtilsTask.send2yj_monitor(user, raffle_data)
