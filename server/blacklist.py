@@ -87,4 +87,4 @@ class BlackList:
 
     # 完全删除
     def clear_all(self) -> None:
-        del self.records[:]
+        self.records.clear()
