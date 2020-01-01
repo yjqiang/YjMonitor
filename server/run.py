@@ -130,7 +130,7 @@ class BroadCastHandler:
             'code': 0,
             'type': '',
             'data': {
-                'version': '0.2.0b3',
+                'version': '0.2.1b0',
                 'observers_num': f'当前用户共{self._receivers.num_observers()}',
                 'posters_count': self._posters.count(),
                 'search_results': search_results,
