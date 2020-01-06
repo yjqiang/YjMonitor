@@ -3,7 +3,8 @@ import bili_statistics
 from .bili_danmu import WsDanmuClient
 from tasks.storm_raffle_handler import StormRaffleJoinTask
 from tasks.lotteries_raffle_handler import LotteriesRaffleJoinTask
-from tasks.anchor_raffle_handler import AnchorRaffleJoinTask
+from tasks.anchor_raffle_handler import AnchorRaffleJoinNoReqTask
+from tasks.tv_raffle_handler import TVRaffleJoinNoReqTask
 from . import raffle_handler
 
 
@@ -62,7 +63,18 @@ class DanmuRaffleMonitor(WsDanmuClient):
         elif cmd == 'ANCHOR_LOT_START':
             data = data['data']
             print(f'{self._area_id}号数据连接检测到{self._room_id:^9}的天选抽奖')
-            raffle_handler.exec_at_once(AnchorRaffleJoinTask, self._room_id, data['id'], data['time'], data)
+            raffle_handler.exec_at_once(AnchorRaffleJoinNoReqTask, self._room_id, data)
             bili_statistics.add2pushed_raffles('天选抽奖', broadcast_type=2)
+        elif cmd == 'RAFFLE_START':
+            data = data['data']
+            # 33地图-GIFT_30405 .
+            # 小电视图-GIFT_30406 .
+            # 蘑菇别跑-GIFT_30448 .
+            tv_type = data['type']
+            if tv_type in ('GIFT_30405', 'GIFT_30406', 'GIFT_30448'):
+                print(f'{self._area_id}号数据连接检测到{self._room_id:^9}的小电视({tv_type})')
+                raffle_handler.exec_at_once(
+                    TVRaffleJoinNoReqTask, self._room_id, data)
+                bili_statistics.add2pushed_raffles('小电视', broadcast_type=2)
 
         return True

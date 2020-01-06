@@ -1,30 +1,36 @@
 import bili_statistics
-import utils
 from tasks.utils import UtilsTask
 from .base_class import Forced, DontWait, Multi
+import utils
 
 
-class AnchorRaffleJoinNoReqTask(Forced, DontWait, Multi):  # 负责push
-    TASK_NAME = 'join_anchor_raffle'
+class TVRaffleJoinNoReqTask(Forced, DontWait, Multi):  # 负责push
+    TASK_NAME = 'join_tv_raffle'
 
     @staticmethod
     async def check(_, real_roomid, other_raffle_data):
+        # 精简数据
+        other_raffle_data = {
+            'raffleId': other_raffle_data['raffleId'],
+            'type': other_raffle_data['type'],
+            'time': other_raffle_data['time'],
+            'time_wait': other_raffle_data['time_wait'],
+        }
 
         next_step_settings = []
-        raffle_id = other_raffle_data['id']
+        raffle_id = other_raffle_data['raffleId']
         if not bili_statistics.is_raffleid_duplicate(raffle_id):
-            print('本次获取到的天选抽奖id为', raffle_id)
+            print('本次获取到的小电视抽奖id为', raffle_id)
             raffle_data = {
                 'raffle_id': raffle_id,
                 'room_id': real_roomid,
-                'raffle_type': 'ANCHOR',
+                'raffle_type': 'TV',
                 'end_time': other_raffle_data['time'] + utils.curr_time(),
                 'other_raffle_data': other_raffle_data
             }
             next_step_setting = (-2, (0, 0), raffle_data)
             next_step_settings.append(next_step_setting)
             bili_statistics.add2raffle_ids(raffle_id)
-
         return next_step_settings
 
     @staticmethod
