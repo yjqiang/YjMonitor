@@ -86,6 +86,13 @@ class UtilsTask:
 
 
 class YjMonitorPoster:
+    SIMPLIFIED = {
+        'GUARD': ('id', 'keyword', 'privilege_type', 'time', 'time_wait'),
+        'TV': ('raffleId', 'type', 'time', 'time_wait'),
+        'PK': ('id', 'time'),
+        'STORM': ('id', 'time')
+    }
+
     def __init__(self):
         self.privkey = None
         self.url = None
@@ -105,7 +112,15 @@ class YjMonitorPoster:
             self.name,
             self.privkey,
             need_name=True)
-        print('raffle_data', raffle_data, self.latest_update_rooms_time)
+
+        try:
+            # 精简数据
+            if raffle_data['raffle_type'] in self.SIMPLIFIED and 'other_raffle_data' in raffle_data:
+                raffle_data['other_raffle_data'] = {key: raffle_data['other_raffle_data'][key]
+                                                    for key in self.SIMPLIFIED[raffle_data['raffle_type']]}
+        except KeyError:
+            pass  # key需要修复，此时临时处理策略就是不再精简，原样发出
+        print('raffle_data', raffle_data)
         data = {
             'code': 0,
             'type': 'raffle',

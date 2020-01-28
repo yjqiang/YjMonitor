@@ -4,19 +4,19 @@ from .base_class import Forced, DontWait, Multi
 import utils
 
 
-class TVRaffleJoinNoReqTask(Forced, DontWait, Multi):  # 负责push
-    TASK_NAME = 'join_tv_raffle'
+class GuardRaffleJoinNoReqTask(Forced, DontWait, Multi):  # 负责push
+    TASK_NAME = 'join_guard_raffle'
 
     @staticmethod
     async def check(_, real_roomid, other_raffle_data):
         next_step_settings = []
-        raffle_id = other_raffle_data['raffleId']
+        raffle_id = other_raffle_data['id']
         if not bili_statistics.is_raffleid_duplicate(raffle_id):
-            print('本次获取到的小电视抽奖id为', raffle_id)
+            print('本次获取到的大航海抽奖id为', raffle_id)
             raffle_data = {
                 'raffle_id': raffle_id,
                 'room_id': real_roomid,
-                'raffle_type': 'TV',
+                'raffle_type': 'GUARD',
                 'end_time': other_raffle_data['time'] + utils.curr_time(),
                 'other_raffle_data': other_raffle_data
             }

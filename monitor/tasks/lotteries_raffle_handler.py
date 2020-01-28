@@ -21,14 +21,15 @@ class LotteriesRaffleJoinTask(Forced, DontWait, Multi):  # 负责push
             max_wait = raffle['time']
             privilege_type = raffle['privilege_type']
 
-            if privilege_type != 1 and max_wait >= 30 \
+            if privilege_type != 1 and max_wait >= 25 \
                     and (not bili_statistics.is_raffleid_duplicate(raffle_id)):
                 print('本次获取到的大航海抽奖id为', raffle_id)
                 raffle_data = {
                     'raffle_id': raffle_id,
                     'room_id': real_roomid,
                     'raffle_type': 'GUARD',
-                    'end_time': max_wait + utils.curr_time()
+                    'end_time': max_wait + utils.curr_time(),
+                    'other_raffle_data': raffle
                 }
                 next_step_setting = (-2, (0, 0), raffle_data)
                 next_step_settings.append(next_step_setting)
@@ -38,13 +39,32 @@ class LotteriesRaffleJoinTask(Forced, DontWait, Multi):  # 负责push
             raffle_id = raffle['id']
             max_wait = raffle['time']
 
-            if max_wait >= 20 and (not bili_statistics.is_raffleid_duplicate(raffle_id)):
+            if max_wait >= 25 and (not bili_statistics.is_raffleid_duplicate(raffle_id)):
                 print('本次获取到的大乱斗抽奖id为', raffle_id)
                 raffle_data = {
                     'raffle_id': raffle_id,
                     'room_id': real_roomid,
-                    'raffle_type': 'GUARD',
-                    'end_time': max_wait + utils.curr_time()
+                    'raffle_type': 'PK',
+                    'end_time': max_wait + utils.curr_time(),
+                    'other_raffle_data': raffle
+                }
+                next_step_setting = (-2, (0, 0), raffle_data)
+                next_step_settings.append(next_step_setting)
+                bili_statistics.add2raffle_ids(raffle_id)
+
+        for raffle in json_rsp['data']['gift']:
+            raffle_id = raffle['raffleId']
+            max_wait = raffle['time']
+            gift_id = int(raffle['gift_id'])
+            if max_wait >= 25 and gift_id in (30405, 30406, 30448) \
+                    and (not bili_statistics.is_raffleid_duplicate(raffle_id)):
+                print('本次获取到的小电视抽奖id为', raffle_id)
+                raffle_data = {
+                    'raffle_id': raffle_id,
+                    'room_id': real_roomid,
+                    'raffle_type': 'TV',
+                    'end_time': max_wait + utils.curr_time(),
+                    'other_raffle_data': raffle
                 }
                 next_step_setting = (-2, (0, 0), raffle_data)
                 next_step_settings.append(next_step_setting)
