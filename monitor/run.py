@@ -9,6 +9,7 @@ import asyncio
 from datetime import datetime
 from itertools import zip_longest
 
+from __version__ import __version__
 import utils
 import conf_loader
 import notifier
@@ -41,14 +42,14 @@ loop.run_until_complete(notifier.exec_task(LoginTask))
 
 other_control = dict_ctrl['other_control']
 
-START = dict_ctrl['other_control']['START']
-END = dict_ctrl['other_control']['END']
+START = other_control['START']
+END = other_control['END']
 
 bili_statistics.init(area_num=1, area_duplicated=False)
 tasks.utils.init(
     key=admin_privkey,
-    name=f'{START}-{END}V7.2.0b0',
-    url=dict_ctrl['other_control']['post_office'])
+    name=f'{START}-{END}(V{__version__})',
+    url=other_control['post_office'])
 
 
 async def fetch_roomid_periodic():

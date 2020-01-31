@@ -17,6 +17,7 @@ from aiohttp import web
 import schedule
 from aiojobs.aiohttp import atomic, setup
 
+from __version__ import __version__
 import utils
 from bili_console import BiliConsole
 import json_req_exceptions
@@ -30,7 +31,6 @@ from tasks.login import LoginTask
 import tasks.utils
 
 
-MAX = 3000
 loop = asyncio.get_event_loop()
 
 dict_user = conf_loader.read_user()
@@ -49,11 +49,12 @@ notifier.init(users=users)
 loop.run_until_complete(notifier.exec_task(LoginTask))
 
 other_control = dict_ctrl['other_control']
+MAX = other_control['END']  # 复用
 bili_statistics.init(area_num=1, area_duplicated=False)
 tasks.utils.init(
     key=admin_privkey,
-    name=f'RDISTRIBUTEDV7.2.0b0',
-    url=dict_ctrl['other_control']['post_office'])
+    name=f'DISTRIBUTED(V{__version__})',
+    url=other_control['post_office'])
 
 
 class MonitorsCtrlCenter:

@@ -7,6 +7,7 @@ import signal
 import threading
 import asyncio
 
+from __version__ import __version__
 import conf_loader
 import notifier
 import bili_statistics
@@ -45,8 +46,8 @@ END = 1250
 bili_statistics.init(area_num=1, area_duplicated=False)
 tasks.utils.init(
     key=admin_privkey,
-    name=f'{START}-{END}POLL1V7.2.0b0',
-    url=dict_ctrl['other_control']['post_office'])
+    name=f'{START}-{END}POLL1(V{__version__})',
+    url=other_control['post_office'])
 
 
 async def fetch_roomid_periodic():

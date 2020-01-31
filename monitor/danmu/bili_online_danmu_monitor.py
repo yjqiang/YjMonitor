@@ -41,24 +41,7 @@ class DanmuRaffleMonitor(Monitor):
             return True
         return super().handle_danmu(data)
 
-    async def _read_one(self) -> bool:
-        header = await self._conn.read_bytes(16)
-        # 本函数对bytes进行相关操作，不特别声明，均为bytes
-        if header is None:
-            return False
-
-        # 每片data都分为header和body，data和data可能粘连
-        # data_l == header_l && next_data_l == next_header_l
-        # ||header_l...header_r|body_l...body_r||next_data_l...
-        tuple_header = self.header_struct.unpack_from(header)
-        len_data, len_header, _, opt, _ = tuple_header
-
-        len_body = len_data - len_header
-        body = await self._conn.read_bytes(len_body)
-        # 本函数对bytes进行相关操作，不特别声明，均为bytes
-        if body is None:
-            return False
-
+    def parse_body(self, body: bytes, opt: int) -> bool:
         # 人气值(或者在线人数或者类似)以及心跳
         if opt == 3:
             online_watchers_num, = self.online_struct.unpack(body)
