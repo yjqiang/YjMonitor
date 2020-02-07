@@ -29,7 +29,13 @@ class DanmuRaffleMonitor(Monitor):
         self.is_online = True
 
     def handle_danmu(self, data: dict):
-        cmd = data['cmd']
+        if 'cmd' in data:
+            cmd = data['cmd']
+        elif 'msg' in data:
+            data = data['msg']
+            cmd = data['cmd']
+        else:
+            return True  # 预防未来sbb站
 
         if cmd == 'PREPARING':
             print(f'{self._area_id}号数据连接房间PREPARING({self._room_id})')
